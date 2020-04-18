@@ -31,6 +31,7 @@ cover:
           - my_room_cover_time_based
 ```
 ### Example scripts.yaml entry
+This example assumes that you're using an MQTT-RF bridge running Tasmota open source firmware (https://tasmota.github.io/docs/devices/Sonoff-RF-Bridge-433/). Of course you can customize based on what ever other way to trigger these 3 type of movements.
 ```
 'rf_myroom_cover_up':
   alias: 'RF send MyRoom Cover UP'
