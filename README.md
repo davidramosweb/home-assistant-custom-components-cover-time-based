@@ -29,7 +29,6 @@ cover:
         stop_script_entity_id: script.rf_myroom_cover_stop
         aliases:
           - my_room_cover_time_based
-
 ```
 ### Example scripts.yaml entry
 ```
@@ -40,7 +39,7 @@ cover:
     alias: 'RF send MyRoom Cover UP'
     data:
       topic: 'cmnd/rf-bridge-1/backlog'
-      payload: 'rfraw XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX;rfraw 0'
+      payload: 'rfraw XXXXXXXXX....XXXXXXXXXX;rfraw 0'
 
 'rf_myroom_cover_stop':
   alias: 'RF send MyRoom Cover STOP'
@@ -49,7 +48,7 @@ cover:
     alias: 'RF send MyRoom Cover STOP'
     data:
       topic: 'cmnd/rf-bridge-1/backlog'
-      payload: 'rfraw XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX;rfraw 0'
+      payload: 'rfraw XXXXXXXXX....XXXXXXXXXX;rfraw 0'
 
 'rf_myroom_cover_down':
   alias: 'RF send MyRoom Cover DOWN'
@@ -58,11 +57,5 @@ cover:
     alias: 'RF send MyRoom Cover DOWN'
     data:
       topic: 'cmnd/rf-bridge-1/backlog'
-      payload: 'rfraw XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX;rfraw 0'
-
-
-
+      payload: 'rfraw XXXXXXXXX....XXXXXXXXXX;rfraw 0'
 ```
-
-
-
