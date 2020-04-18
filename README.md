@@ -33,8 +33,8 @@ cover:
 ### Example scripts.yaml entry
 This example assumes that you're using an MQTT-RF bridge running Tasmota open source firmware (https://tasmota.github.io/docs/devices/Sonoff-RF-Bridge-433/). Of course you can customize based on what ever other way to trigger these 3 type of movements.
 ```
-'rf_myroom_cover_up':
-  alias: 'RF send MyRoom Cover UP'
+'rf_myroom_cover_down':
+  alias: 'RF send MyRoom Cover DOWN'
   sequence:
   - service: mqtt.publish
     data:
@@ -49,8 +49,8 @@ This example assumes that you're using an MQTT-RF bridge running Tasmota open so
       topic: 'cmnd/rf-bridge-1/backlog'
       payload: 'rfraw XXXXXXXXX....XXXXXXXXXX;rfraw 0'
 
-'rf_myroom_cover_down':
-  alias: 'RF send MyRoom Cover DOWN'
+ 'rf_myroom_cover_up':
+  alias: 'RF send MyRoom Cover UP'
   sequence:
   - service: mqtt.publish
     data:
