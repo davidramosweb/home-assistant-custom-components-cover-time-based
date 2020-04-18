@@ -37,7 +37,6 @@ This example assumes that you're using an MQTT-RF bridge running Tasmota open so
   alias: 'RF send MyRoom Cover UP'
   sequence:
   - service: mqtt.publish
-    alias: 'RF send MyRoom Cover UP'
     data:
       topic: 'cmnd/rf-bridge-1/backlog'
       payload: 'rfraw XXXXXXXXX....XXXXXXXXXX;rfraw 0'
@@ -46,7 +45,6 @@ This example assumes that you're using an MQTT-RF bridge running Tasmota open so
   alias: 'RF send MyRoom Cover STOP'
   sequence:
   - service: mqtt.publish
-    alias: 'RF send MyRoom Cover STOP'
     data:
       topic: 'cmnd/rf-bridge-1/backlog'
       payload: 'rfraw XXXXXXXXX....XXXXXXXXXX;rfraw 0'
@@ -55,7 +53,6 @@ This example assumes that you're using an MQTT-RF bridge running Tasmota open so
   alias: 'RF send MyRoom Cover DOWN'
   sequence:
   - service: mqtt.publish
-    alias: 'RF send MyRoom Cover DOWN'
     data:
       topic: 'cmnd/rf-bridge-1/backlog'
       payload: 'rfraw XXXXXXXXX....XXXXXXXXXX;rfraw 0'
