@@ -18,15 +18,15 @@ To use this component in your installation, you have to set RF-sending scripts t
 
 ```
 cover:
-  - platform: cover_time_based
+  - platform: cover_rf_time_based
     devices:
         my_room_cover_time_based:
         name: My Room Cover
-        travelling_time_down: 34
         travelling_time_up: 36
-        open_script_entity_id: script.rf_myroom_cover_up
+        travelling_time_down: 34
         close_script_entity_id: script.rf_myroom_cover_down
         stop_script_entity_id: script.rf_myroom_cover_stop
+        open_script_entity_id: script.rf_myroom_cover_up
         aliases:
           - my_room_cover_time_based
 ```
