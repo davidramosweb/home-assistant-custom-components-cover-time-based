@@ -1,9 +1,9 @@
 {
-  "domain": "cover_time_based",
-  "name": "Cover Time Based",
-  "documentation": "https://github.com/davidramosweb/home-assistant-custom-components-cover-time-based",
+  "domain": "cover_rf_time_based",
+  "name": "Cover Time Based RF version",
+  "documentation": "https://github.com/nagyrobi/home-assistant-custom-components-cover-time-based",
   "requirements": [
     "xknx==0.9.4"
   ],
-  "codeowners": ["@davidramosweb"]
+  "codeowners": ["@davidramosweb", "@nagyrobi"]
 }
