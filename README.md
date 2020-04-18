@@ -5,14 +5,14 @@ With this component you can add a time-based cover. You have to set RF-sending s
 For example, you can use an RF-Bridge running Tasmota firmware to send out RF codes, with RF-based motor roller shutters to do this.
 
 ## Installation
-* Copy all files in custom_components/cover_time_based to your <config directory>/custom_components/cover_time_based/ directory.
+* Copy all files in custom_components/cover_rf_time_based to your <config directory>/custom_components/cover_rf_time_based/ directory.
 * Restart Home-Assistant.
-* Add the configuration to your configuration.yaml file.
-* Create the required scripts.
+* Create the required scripts in scripts.yaml.
+* Add the configuration to your configuration.yaml.
 * Restart Home-Assistant again.
 
 ### Usage
-To use this component in your installation, add the following to your configuration.yaml file:
+To use this component in your installation, you have to set RF-sending scripts to open, close and stop the cover (see below), and add the following to your configuration.yaml file:
 
 ### Example configuration.yaml entry
 
