@@ -57,3 +57,17 @@ This example assumes that you're using an MQTT-RF bridge running Tasmota open so
       topic: 'cmnd/rf-bridge-1/backlog'
       payload: 'rfraw XXXXXXXXX....XXXXXXXXXX;rfraw 0'
 ```
+
+### Icon customization
+For proper icon display (opened/closed) customization can be added to `configuration.yaml` based of what type of covers you have, either one by one, or for all covers at once:
+
+```
+homeassistant:
+  customize:
+    cover.my_room_cover_time_based:
+      device_class: shutter
+  customize_domain:
+     cover:
+      device_class: shutter
+```
+More details: https://www.home-assistant.io/docs/configuration/customizing-devices/#device-class
