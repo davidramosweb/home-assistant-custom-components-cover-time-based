@@ -239,8 +239,8 @@ class CoverTimeBased(CoverDevice, RestoreEntity):
     async def auto_stop_if_necessary(self):
         """Do auto stop if necessary."""
         if self.position_reached():
-            _LOGGER.debug('auto_stop_if_necessary :: calling stop command')
-            await self._async_handle_command(SERVICE_STOP_COVER)
+#            _LOGGER.debug('auto_stop_if_necessary :: calling stop command')
+#            await self._async_handle_command(SERVICE_STOP_COVER) #not needed when triggering scripts; blocks trigger when sync is lost
             self.tc.stop()
     
     
@@ -257,7 +257,7 @@ class CoverTimeBased(CoverDevice, RestoreEntity):
  
         elif command == "stop_cover":
             cmd = "STOP"
-            self._state = True
+#            self._state = True
             await self.hass.services.async_call("homeassistant", "turn_on", {"entity_id": self._stop_script_entity_id}, False)
 
         _LOGGER.debug('_async_handle_command :: %s', cmd)
