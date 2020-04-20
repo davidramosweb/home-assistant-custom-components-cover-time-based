@@ -4,6 +4,8 @@ Cover Time Based Component for your Home-Assistant (http://www.home-assistant.io
 With this component you can add a time-based cover. You have to set RF-sending scripts to open, close and stop the cover. 
 For example, you can use an RF-Bridge running Tasmota firmware to send out RF codes, with RF-based motor roller shutters to do this.
 
+You can adapt it to your requirements, actually any cover system could be used which uses 3 triggers: up, stop, down. The idea is to embed your triggers into scripts which can be hooked into this component as below.
+
 ## Installation
 * Copy all files in custom_components/cover_rf_time_based to your <config directory>/custom_components/cover_rf_time_based/ directory.
 * Restart Home-Assistant.
