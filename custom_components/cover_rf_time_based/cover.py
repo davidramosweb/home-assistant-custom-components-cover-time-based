@@ -257,7 +257,7 @@ class CoverTimeBased(CoverDevice, RestoreEntity):
  
         elif command == "stop_cover":
             cmd = "STOP"
-#            self._state = True
+            self._state = True
             await self.hass.services.async_call("homeassistant", "turn_on", {"entity_id": self._stop_script_entity_id}, False)
 
         _LOGGER.debug('_async_handle_command :: %s', cmd)
