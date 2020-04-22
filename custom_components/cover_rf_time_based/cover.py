@@ -100,7 +100,7 @@ class CoverTimeBased(CoverDevice, RestoreEntity):
         """ Only cover's position matters.             """
         """ The rest is calculated from this attribute."""
         old_state = await self.async_get_last_state()
-        _LOGGER.debug('async_added_to_hass :: oldState %s', old_state)
+        _LOGGER.debug(self._name + ': ' + 'async_added_to_hass :: oldState %s', old_state)
         if (
                 old_state is not None and
                 self.tc is not None and
@@ -111,7 +111,7 @@ class CoverTimeBased(CoverDevice, RestoreEntity):
     def _handle_my_button(self):
         """Handle the MY button press"""
         if self.tc.is_traveling():
-            _LOGGER.debug('_handle_my_button :: button stops cover')
+            _LOGGER.debug(self._name + ': ' + '_handle_my_button :: button stops cover')
             self.tc.stop()
             self.stop_auto_updater()
 
@@ -163,12 +163,12 @@ class CoverTimeBased(CoverDevice, RestoreEntity):
         """Move the cover to a specific position."""
         if ATTR_POSITION in kwargs:
             position = kwargs[ATTR_POSITION]
-            _LOGGER.debug('async_set_cover_position: %d', position)
+            _LOGGER.debug(self._name + ': ' + 'async_set_cover_position: %d', position)
             await self.set_position(position)
 
     async def async_close_cover(self, **kwargs):
         """Turn the device close."""
-        _LOGGER.debug('async_close_cover')
+        _LOGGER.debug(self._name + ': ' + 'async_close_cover')
         self.tc.start_travel_down()
 
         self.start_auto_updater()
@@ -176,7 +176,7 @@ class CoverTimeBased(CoverDevice, RestoreEntity):
 
     async def async_open_cover(self, **kwargs):
         """Turn the device open."""
-        _LOGGER.debug('async_open_cover')
+        _LOGGER.debug(self._name + ': ' + 'async_open_cover')
         self.tc.start_travel_up()
 
         self.start_auto_updater()
@@ -184,15 +184,15 @@ class CoverTimeBased(CoverDevice, RestoreEntity):
 
     async def async_stop_cover(self, **kwargs):
         """Turn the device stop."""
-        _LOGGER.debug('async_stop_cover')
+        _LOGGER.debug(self._name + ': ' + 'async_stop_cover')
         self._handle_my_button()
         await self._async_handle_command(SERVICE_STOP_COVER)
 
     async def set_position(self, position):
-        _LOGGER.debug('set_position')
+        _LOGGER.debug(self._name + ': ' + 'set_position')
         """Move cover to a designated position."""
         current_position = self.tc.current_position()
-        _LOGGER.debug('set_position :: current_position: %d, new_position: %d',
+        _LOGGER.debug(self._name + ': ' + 'set_position :: current_position: %d, new_position: %d',
                       current_position, position)
         command = None
         if position < current_position:
@@ -202,15 +202,15 @@ class CoverTimeBased(CoverDevice, RestoreEntity):
         if command is not None:
             self.start_auto_updater()
             self.tc.start_travel(position)
-            _LOGGER.debug('set_position :: command %s', command)
+            _LOGGER.debug(self._name + ': ' + 'set_position :: command %s', command)
             await self._async_handle_command(command)
         return
 
     def start_auto_updater(self):
         """Start the autoupdater to update HASS while cover is moving."""
-        _LOGGER.debug('start_auto_updater')
+        _LOGGER.debug(self._name + ': ' + 'start_auto_updater')
         if self._unsubscribe_auto_updater is None:
-            _LOGGER.debug('init _unsubscribe_auto_updater')
+            _LOGGER.debug(self._name + ': ' + 'init _unsubscribe_auto_updater')
             interval = timedelta(seconds=0.1)
             self._unsubscribe_auto_updater = async_track_time_interval(
                 self.hass, self.auto_updater_hook, interval)
@@ -218,16 +218,16 @@ class CoverTimeBased(CoverDevice, RestoreEntity):
     @callback
     def auto_updater_hook(self, now):
         """Call for the autoupdater."""
-        _LOGGER.debug('auto_updater_hook')
+        _LOGGER.debug(self._name + ': ' + 'auto_updater_hook')
         self.async_schedule_update_ha_state()
         if self.position_reached():
-            _LOGGER.debug('auto_updater_hook :: position_reached')
+            _LOGGER.debug(self._name + ': ' + 'auto_updater_hook :: position_reached')
             self.stop_auto_updater()
         self.hass.async_create_task(self.auto_stop_if_necessary())
 
     def stop_auto_updater(self):
         """Stop the autoupdater."""
-        _LOGGER.debug('stop_auto_updater')
+        _LOGGER.debug(self._name + ': ' + 'stop_auto_updater')
         if self._unsubscribe_auto_updater is not None:
             self._unsubscribe_auto_updater()
             self._unsubscribe_auto_updater = None
@@ -242,7 +242,7 @@ class CoverTimeBased(CoverDevice, RestoreEntity):
         if self.position_reached():
             self.tc.stop()
             if (current_position > 0) and (current_position < 100):
-                _LOGGER.debug('auto_stop_if_necessary :: calling stop command')
+                _LOGGER.debug(self._name + ': ' + 'auto_stop_if_necessary :: calling stop command')
                 await self._async_handle_command(SERVICE_STOP_COVER)
     
     
@@ -262,7 +262,7 @@ class CoverTimeBased(CoverDevice, RestoreEntity):
             self._state = True
             await self.hass.services.async_call("homeassistant", "turn_on", {"entity_id": self._stop_script_entity_id}, False)
 
-        _LOGGER.debug('_async_handle_command :: %s', cmd)
+        _LOGGER.debug(self._name + ': ' + '_async_handle_command :: %s', cmd)
         
         # Update state of entity
         self.async_write_ha_state()
