@@ -1,4 +1,4 @@
-"""Cover Time based."""
+"""Cover Time based, RF version."""
 import logging
 
 import voluptuous as vol
@@ -238,10 +238,12 @@ class CoverTimeBased(CoverDevice, RestoreEntity):
 
     async def auto_stop_if_necessary(self):
         """Do auto stop if necessary."""
+        current_position = self.tc.current_position()
         if self.position_reached():
-#            _LOGGER.debug('auto_stop_if_necessary :: calling stop command')
-#            await self._async_handle_command(SERVICE_STOP_COVER) #not needed when triggering scripts; blocks trigger when sync is lost
             self.tc.stop()
+            if (current_position > 0) and (current_position < 100):
+                _LOGGER.debug('auto_stop_if_necessary :: calling stop command')
+                await self._async_handle_command(SERVICE_STOP_COVER)
     
     
     async def _async_handle_command(self, command, *args):
