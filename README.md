@@ -97,6 +97,8 @@ To prevent that, make sure you **don't use** [cover groups](https://www.home-ass
     - service: cover.close_cover
       entity_id: cover.room_3
     - delay: '00:00:01'
-    - service: cover.close_cover
-      entity_id: cover.room_4
+    - service: cover.set_cover_position
+      data:
+        entity_id: cover.room_4
+        position: 30
 ```
