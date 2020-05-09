@@ -34,7 +34,7 @@ cover:
           - my_room_cover_time_based
 ```
 ### Example scripts.yaml entry
-This example assumes that you're using an MQTT-RF bridge running Tasmota open source firmware (https://tasmota.github.io/docs/devices/Sonoff-RF-Bridge-433/). Of course you can customize based on what ever other way to trigger these 3 type of movements.
+This example assumes that you're using an MQTT-RF bridge running [Tasmota open source firmware](https://tasmota.github.io/docs/devices/Sonoff-RF-Bridge-433/). Of course you can customize based on what ever other way to trigger these 3 type of movements.
 ```
 'rf_myroom_cover_down':
   alias: 'RF send MyRoom Cover DOWN'
@@ -73,7 +73,7 @@ homeassistant:
     cover.my_room_cover_time_based:
       device_class: shutter
 ```
-More details: https://www.home-assistant.io/docs/configuration/customizing-devices/#device-class
+More details in [Home Assistant device class docs](https://www.home-assistant.io/docs/configuration/customizing-devices/#device-class).
 
 ### Some tips when using this component with Tasmota RF bridge in automations
 Since there's no feedback from the cover about its current state, state is assumed based on the last command sent, and position is calculated based on the fraction of time spent travelling up or down. You need to measure time by opening/closing the cover using the original remote controller, not through the commands sent from Home Assistant (as they may introduce some delay).
