@@ -1,10 +1,9 @@
 # Cover Time Based Component RF (trigger script) version
 Cover Time Based Component for your [Home-Assistant](http://www.home-assistant.io) based on [davidramosweb's Cover Time Based Component](https://github.com/davidramosweb/home-assistant-custom-components-cover-time-based), modified for covers triggered by RF commands.
 
-With this component you can add a time-based cover. You have to set triggering scripts to open, close and stop the cover. 
-For example, you can use an RF-Bridge running Tasmota firmware to send out RF codes (like in example shown below), with RF-based motor roller shutters to do this.
+With this component you can add a time-based cover. You have to set triggering scripts to open, close and stop the cover. Position is calculated based on the fraction of time spent by the cover travelling up or down. You can set position from within Home Assistant using service calls.
 
-You can adapt it to your requirements, actually any cover system could be used which uses 3 triggers: up, stop, down. The idea is to embed your triggers into scripts which can be hooked into this component as below.
+You can adapt it to your requirements, actually any cover system could be used which uses 3 triggers: up, stop, down. The idea is to embed your triggers into scripts which can be hooked into this component as below. For example, you can use an RF-Bridge running Tasmota firmware to send out RF codes (like in example shown below), with RF-based motor roller shutters to do this.
 
 ## Installation
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
@@ -30,7 +29,7 @@ cover:
         close_script_entity_id: script.rf_myroom_cover_down
         stop_script_entity_id: script.rf_myroom_cover_stop
         open_script_entity_id: script.rf_myroom_cover_up
-        aliases:
+        aliases: #optional
           - my_room_cover_time_based
 ```
 ### Example scripts.yaml entry
