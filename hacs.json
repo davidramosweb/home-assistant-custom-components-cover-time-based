@@ -1,6 +1,6 @@
 {
   "name": "Cover Time Based RF (trigger script) component",
-  "content_in_root": true,
+  "content_in_root": false,
   "render_readme": true,
   "domains": ["cover"]
 }
