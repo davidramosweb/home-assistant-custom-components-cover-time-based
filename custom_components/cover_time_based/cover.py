@@ -11,7 +11,7 @@ from homeassistant.components.cover import (
     ATTR_CURRENT_POSITION,
     ATTR_POSITION,
     PLATFORM_SCHEMA,
-    CoverDevice,
+    CoverEntity,
 )
 from homeassistant.const import (
     CONF_NAME,
@@ -73,7 +73,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     """Set up the cover platform."""
     async_add_entities(devices_from_config(config))
 
-class CoverTimeBased(CoverDevice, RestoreEntity):
+class CoverTimeBased(CoverEntity, RestoreEntity):
 	
     def __init__(self, device_id, name, travel_time_down, travel_time_up, open_switch_entity_id, close_switch_entity_id):
         """Initialize the cover."""
