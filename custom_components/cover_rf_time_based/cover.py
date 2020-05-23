@@ -30,7 +30,9 @@ CONF_NAME = 'name'
 CONF_ALIASES = 'aliases'
 CONF_TRAVELLING_TIME_DOWN = 'travelling_time_down'
 CONF_TRAVELLING_TIME_UP = 'travelling_time_up'
+CONF_SEND_STOP_AT_ENDS = 'send_stop_at_ends'
 DEFAULT_TRAVEL_TIME = 25
+DEFAULT_SEND_STOP_AT_ENDS = False
 
 CONF_OPEN_SCRIPT_ENTITY_ID = 'open_script_entity_id'
 CONF_CLOSE_SCRIPT_ENTITY_ID = 'close_script_entity_id'
@@ -52,7 +54,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
                         cv.positive_int,
                     vol.Optional(CONF_TRAVELLING_TIME_UP, default=DEFAULT_TRAVEL_TIME):
                         cv.positive_int,
-                }
+                    vol.Optional(CONF_SEND_STOP_AT_ENDS, default=DEFAULT_SEND_STOP_AT_ENDS):
+                        cv.boolean,                }
             }
         ),
     }
@@ -68,7 +71,8 @@ def devices_from_config(domain_config):
         open_script_entity_id = config.pop(CONF_OPEN_SCRIPT_ENTITY_ID)
         close_script_entity_id = config.pop(CONF_CLOSE_SCRIPT_ENTITY_ID)
         stop_script_entity_id = config.pop(CONF_STOP_SCRIPT_ENTITY_ID)
-        device = CoverTimeBased(device_id, name, travel_time_down, travel_time_up, open_script_entity_id, close_script_entity_id, stop_script_entity_id)
+        send_stop_at_ends = config.pop(CONF_SEND_STOP_AT_ENDS)
+        device = CoverTimeBased(device_id, name, travel_time_down, travel_time_up, open_script_entity_id, close_script_entity_id, stop_script_entity_id, send_stop_at_ends)
         devices.append(device)
     return devices
 
@@ -78,7 +82,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 class CoverTimeBased(CoverEntity, RestoreEntity):
 	
-    def __init__(self, device_id, name, travel_time_down, travel_time_up, open_script_entity_id, close_script_entity_id, stop_script_entity_id):
+    def __init__(self, device_id, name, travel_time_down, travel_time_up, open_script_entity_id, close_script_entity_id, stop_script_entity_id, send_stop_at_ends):
         """Initialize the cover."""
         from xknx.devices import TravelCalculator
         self._travel_time_down = travel_time_down
@@ -86,6 +90,7 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         self._open_script_entity_id = open_script_entity_id
         self._close_script_entity_id = close_script_entity_id        
         self._stop_script_entity_id = stop_script_entity_id        
+        self._send_stop_at_ends = send_stop_at_ends        
         
         if name:
             self._name = name
@@ -242,8 +247,12 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         if self.position_reached():
             self.tc.stop()
             if (current_position > 0) and (current_position < 100):
-                _LOGGER.debug(self._name + ': ' + 'auto_stop_if_necessary :: calling stop command')
+                _LOGGER.debug(self._name + ': ' + 'auto_stop_if_necessary :: current_position between 1 and 99 :: calling stop command')
                 await self._async_handle_command(SERVICE_STOP_COVER)
+            else:
+                if self._send_stop_at_ends:
+                    _LOGGER.debug(self._name + ': ' + 'auto_stop_if_necessary :: send_stop_at_ends :: calling stop command')
+                    await self._async_handle_command(SERVICE_STOP_COVER)
     
     
     async def _async_handle_command(self, command, *args):
