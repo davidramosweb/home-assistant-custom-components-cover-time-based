@@ -83,11 +83,11 @@ The example below assumes you've set `send_stop_at_ends: True` in the cover conf
   sequence:
     - service: mqtt.publish
       data:
-        topic: 'cmnd/myroomcoverswitch/POWER1' # power
+        topic: 'cmnd/myroomcoverswitch/POWER1' # open/close
         payload: 'OFF'
     - service: mqtt.publish
       data:
-        topic: 'cmnd/myroomcoverswitch/POWER2' # open/close
+        topic: 'cmnd/myroomcoverswitch/POWER2' # power
         payload: 'OFF'
 
 'rf_myroom_cover_up':
