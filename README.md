@@ -39,7 +39,7 @@ Optional settings:
 
 
 ### Example scripts.yaml entry
-The following example assumes that you're using an [MQTT-RF bridge running Tasmota](https://tasmota.github.io/docs/devices/Sonoff-RF-Bridge-433/) open source firmware to integrate your radio-controller covers:
+The following example assumes that you're using an [MQTT-RF bridge running Tasmota](https://tasmota.github.io/docs/devices/Sonoff-RF-Bridge-433/) open source firmware to integrate your radio-controlled covers:
 ```
 'rf_myroom_cover_down':
   alias: 'RF send MyRoom Cover DOWN'
