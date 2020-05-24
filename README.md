@@ -66,7 +66,7 @@ The following example assumes that you're using an [MQTT-RF bridge running Tasmo
       payload: 'rfraw XXXXXXXXX....XXXXXXXXXX;rfraw 0'
 ```
 
-The example below assumes you've set `send_stop_at_ends: True` in the cover config, and you're using nay [two-gang switch running Tasmota](https://tasmota.github.io/docs/devices/Sonoff-Dual-R2/) open source firmware to integrate your switch-controlled covers:
+The example below assumes you've set `send_stop_at_ends: True` in the cover config, and you're using any [two-gang switch running Tasmota](https://tasmota.github.io/docs/devices/Sonoff-Dual-R2/) open source firmware to integrate your switch-controlled covers:
 ```
 'rf_myroom_cover_down':
   sequence:
