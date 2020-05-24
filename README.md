@@ -17,7 +17,6 @@ You can adapt it to your requirements, actually any cover system could be used w
 To use this component in your installation, you have to set RF-sending scripts to open, close and stop the cover (see below), and add the following to your configuration.yaml file:
 
 ### Example configuration.yaml entry
-
 ```
 cover:
   - platform: cover_rf_time_based
@@ -40,7 +39,7 @@ Optional settings:
 
 
 ### Example scripts.yaml entry
-The following example assumes that you're using an [MQTT-RF bridge running Tasmota](https://tasmota.github.io/docs/devices/Sonoff-RF-Bridge-433/) open source firmware.
+The following example assumes that you're using an [MQTT-RF bridge running Tasmota](https://tasmota.github.io/docs/devices/Sonoff-RF-Bridge-433/) open source firmware to integrate your radio-controller covers:
 ```
 'rf_myroom_cover_down':
   alias: 'RF send MyRoom Cover DOWN'
@@ -67,7 +66,7 @@ The following example assumes that you're using an [MQTT-RF bridge running Tasmo
       payload: 'rfraw XXXXXXXXX....XXXXXXXXXX;rfraw 0'
 ```
 
-The example below assumes you've set `send_stop_at_ends: True` in the cover config, and you're using nay [two-gang switch running Tasmota](https://tasmota.github.io/docs/devices/Sonoff-Dual-R2/) open source firmware.
+The example below assumes you've set `send_stop_at_ends: True` in the cover config, and you're using nay [two-gang switch running Tasmota](https://tasmota.github.io/docs/devices/Sonoff-Dual-R2/) open source firmware to integrate your switch-controlled covers:
 ```
   'rf_myroom_cover_down':
     sequence:
