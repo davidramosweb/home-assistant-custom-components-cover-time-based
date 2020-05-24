@@ -40,7 +40,7 @@ Optional settings:
 
 
 ### Example scripts.yaml entry
-This example assumes that you're using an MQTT-RF bridge running [Tasmota open source firmware](https://tasmota.github.io/docs/devices/Sonoff-RF-Bridge-433/). Of course you can customize based on what ever other way to trigger these 3 type of movements.
+The following example assumes that you're using an [MQTT-RF bridge running Tasmota](https://tasmota.github.io/docs/devices/Sonoff-RF-Bridge-433/) open source firmware.
 ```
 'rf_myroom_cover_down':
   alias: 'RF send MyRoom Cover DOWN'
@@ -66,6 +66,43 @@ This example assumes that you're using an MQTT-RF bridge running [Tasmota open s
       topic: 'cmnd/rf-bridge-1/backlog'
       payload: 'rfraw XXXXXXXXX....XXXXXXXXXX;rfraw 0'
 ```
+
+The example below assumes you've set `send_stop_at_ends: True` in the cover config, and you're using nay [two-gang switch running Tasmota](https://tasmota.github.io/docs/devices/Sonoff-Dual-R2/) open source firmware.
+```
+  'rf_myroom_cover_down':
+    sequence:
+      - service: mqtt.publish
+        data:
+          topic: 'cmnd/myroomcoverswitch/POWER1' # open/close
+          payload: 'OFF'
+      - service: mqtt.publish
+        data:
+          topic: 'cmnd/myroomcoverswitch/POWER2' # power
+          payload: 'ON'
+
+  'rf_myroom_cover_stop':
+    sequence:
+      - service: mqtt.publish
+        data:
+          topic: 'cmnd/myroomcoverswitch/POWER1' # power
+          payload: 'OFF'
+      - service: mqtt.publish
+        data:
+          topic: 'cmnd/myroomcoverswitch/POWER2' # open/close
+          payload: 'OFF'
+
+  'rf_myroom_cover_up':
+    sequence:
+      - service: mqtt.publish
+        data:
+          topic: 'cmnd/myroomcoverswitch/POWER1' # open/close
+          payload: 'ON'
+      - service: mqtt.publish
+        data:
+          topic: 'cmnd/myroomcoverswitch/POWER2' # power
+          payload: 'ON'
+```
+Of course you can customize based on what ever other way to trigger these 3 type of movements.
 
 ### Icon customization
 For proper icon display (opened/closed) customization can be added to `configuration.yaml` based of what type of covers you have, either one by one, or for all covers at once:
