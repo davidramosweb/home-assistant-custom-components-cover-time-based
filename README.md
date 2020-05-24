@@ -102,7 +102,7 @@ The example below assumes you've set `send_stop_at_ends: True` in the cover conf
         payload: 'ON'
 ```
 (Credits to [VDRainer](https://github.com/VDRainer) for the code. Note how you don't have to configure these as switches in Home Assistant at all, it's enough just to publish MQTT commands strainght from the script.)
-Of course you can customize based on what ever other way to trigger these 3 type of movements.
+Of course you can customize based on what ever other way to trigger these 3 type of movements. You could, for example, turn on and off warning lights along with the movement.
 
 ### Icon customization
 For proper icon display (opened/closed) customization can be added to `configuration.yaml` based of what type of covers you have, either one by one, or for all covers at once:
