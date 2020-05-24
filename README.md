@@ -69,6 +69,7 @@ The following example assumes that you're using an [MQTT-RF bridge running Tasmo
 The example below assumes you've set `send_stop_at_ends: True` in the cover config, and you're using any [two-gang switch running Tasmota](https://tasmota.github.io/docs/devices/Sonoff-Dual-R2/) open source firmware to integrate your switch-controlled covers:
 ```
 'rf_myroom_cover_down':
+  alias: 'Switches send MyRoom Cover DOWN'
   sequence:
     - service: mqtt.publish
       data:
@@ -80,17 +81,19 @@ The example below assumes you've set `send_stop_at_ends: True` in the cover conf
         payload: 'ON'
 
 'rf_myroom_cover_stop':
+  alias: 'Switches send MyRoom Cover STOP'
   sequence:
     - service: mqtt.publish
       data:
-        topic: 'cmnd/myroomcoverswitch/POWER1' # open/close
+        topic: 'cmnd/myroomcoverswitch/POWER1' # power
         payload: 'OFF'
     - service: mqtt.publish
       data:
-        topic: 'cmnd/myroomcoverswitch/POWER2' # power
+        topic: 'cmnd/myroomcoverswitch/POWER2' # open/close
         payload: 'OFF'
 
 'rf_myroom_cover_up':
+  alias: 'Switches send MyRoom Cover UP'
   sequence:
     - service: mqtt.publish
       data:
