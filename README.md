@@ -21,7 +21,7 @@ To use this component in your installation, you have to set RF-sending scripts t
 cover:
   - platform: cover_rf_time_based
     devices:
-        my_room_cover_time_based:
+      my_room_cover_time_based:
         name: My Room Cover
         travelling_time_up: 36
         travelling_time_down: 34
@@ -85,11 +85,11 @@ The example below assumes you've set `send_stop_at_ends: True` in the cover conf
   sequence:
     - service: mqtt.publish
       data:
-        topic: 'cmnd/myroomcoverswitch/POWER1' # open/close
+        topic: 'cmnd/myroomcoverswitch/POWER2' # power
         payload: 'OFF'
     - service: mqtt.publish
       data:
-        topic: 'cmnd/myroomcoverswitch/POWER2' # power
+        topic: 'cmnd/myroomcoverswitch/POWER1' # open/close
         payload: 'OFF'
 
 'rf_myroom_cover_up':
