@@ -43,16 +43,16 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_DEVICES, default={}): vol.Schema(
             {
                 cv.string: {
-                    vol.Optional(CONF_NAME): cv.string,
-                    vol.Optional(CONF_OPEN_SCRIPT_ENTITY_ID): cv.string,
-                    vol.Optional(CONF_CLOSE_SCRIPT_ENTITY_ID): cv.string,
-                    vol.Optional(CONF_STOP_SCRIPT_ENTITY_ID): cv.string,
+                    vol.Required(CONF_NAME): cv.string,
+                    vol.Required(CONF_OPEN_SCRIPT_ENTITY_ID): cv.string,
+                    vol.Required(CONF_CLOSE_SCRIPT_ENTITY_ID): cv.string,
+                    vol.Required(CONF_STOP_SCRIPT_ENTITY_ID): cv.string,
                     vol.Optional(CONF_ALIASES, default=[]):
                         vol.All(cv.ensure_list, [cv.string]),
 
-                    vol.Optional(CONF_TRAVELLING_TIME_DOWN, default=DEFAULT_TRAVEL_TIME):
+                    vol.Required(CONF_TRAVELLING_TIME_DOWN, default=DEFAULT_TRAVEL_TIME):
                         cv.positive_int,
-                    vol.Optional(CONF_TRAVELLING_TIME_UP, default=DEFAULT_TRAVEL_TIME):
+                    vol.Required(CONF_TRAVELLING_TIME_UP, default=DEFAULT_TRAVEL_TIME):
                         cv.positive_int,
                     vol.Optional(CONF_SEND_STOP_AT_ENDS, default=DEFAULT_SEND_STOP_AT_ENDS):
                         cv.boolean,                }
@@ -91,7 +91,7 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         self._close_script_entity_id = close_script_entity_id        
         self._stop_script_entity_id = stop_script_entity_id        
         self._send_stop_at_ends = send_stop_at_ends        
-        
+
         if name:
             self._name = name
         else:
