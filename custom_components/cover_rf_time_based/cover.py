@@ -44,18 +44,14 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
             {
                 cv.string: {
                     vol.Required(CONF_NAME): cv.string,
-                    vol.Required(CONF_OPEN_SCRIPT_ENTITY_ID): cv.string,
-                    vol.Required(CONF_CLOSE_SCRIPT_ENTITY_ID): cv.string,
-                    vol.Required(CONF_STOP_SCRIPT_ENTITY_ID): cv.string,
-                    vol.Optional(CONF_ALIASES, default=[]):
-                        vol.All(cv.ensure_list, [cv.string]),
-
-                    vol.Required(CONF_TRAVELLING_TIME_DOWN, default=DEFAULT_TRAVEL_TIME):
-                        cv.positive_int,
-                    vol.Required(CONF_TRAVELLING_TIME_UP, default=DEFAULT_TRAVEL_TIME):
-                        cv.positive_int,
-                    vol.Optional(CONF_SEND_STOP_AT_ENDS, default=DEFAULT_SEND_STOP_AT_ENDS):
-                        cv.boolean,                }
+                    vol.Required(CONF_OPEN_SCRIPT_ENTITY_ID): cv.entity_id,
+                    vol.Required(CONF_CLOSE_SCRIPT_ENTITY_ID): cv.entity_id,
+                    vol.Required(CONF_STOP_SCRIPT_ENTITY_ID): cv.entity_id,
+                    vol.Optional(CONF_ALIASES, default=[]): vol.All(cv.ensure_list, [cv.string]),
+                    vol.Optional(CONF_TRAVELLING_TIME_DOWN, default=DEFAULT_TRAVEL_TIME): cv.positive_int,
+                    vol.Optional(CONF_TRAVELLING_TIME_UP, default=DEFAULT_TRAVEL_TIME): cv.positive_int,
+                    vol.Optional(CONF_SEND_STOP_AT_ENDS, default=DEFAULT_SEND_STOP_AT_ENDS): cv.boolean,
+                }
             }
         ),
     }
