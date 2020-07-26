@@ -262,7 +262,7 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
     async def set_known_position(self, **kwargs):
         position = kwargs[ATTR_POSITION]
         confident = kwargs[ATTR_CONFIDENT] if ATTR_CONFIDENT in kwargs else False
-        _LOGGER.debug(self._name: + ': ' + 'set_known_position :: position received %d', position)
+        _LOGGER.debug(self._name + ': ' + 'set_known_position :: position received %d', position)
         self._confident_in_known_position = confident 
         self.tc.set_position(position)
 
