@@ -19,7 +19,7 @@ You can adapt it to your requirements, actually any cover system could be used w
 To use this component in your installation, you have to set RF-sending scripts to open, close and stop the cover (see below), and add the following to your configuration.yaml file:
 
 ### Example configuration.yaml entry
-```
+```yaml
 cover:
   - platform: cover_rf_time_based
     devices:
@@ -42,7 +42,7 @@ Optional settings:
 
 ### Example scripts.yaml entry
 The following example assumes that you're using an [MQTT-RF bridge running Tasmota](https://tasmota.github.io/docs/devices/Sonoff-RF-Bridge-433/) open source firmware to integrate your radio-controlled covers:
-```
+```yaml
 'rf_myroom_cover_down':
   alias: 'RF send MyRoom Cover DOWN'
   sequence:
@@ -69,7 +69,7 @@ The following example assumes that you're using an [MQTT-RF bridge running Tasmo
 ```
 
 The example below assumes you've set `send_stop_at_ends: True` in the cover config, and you're using any [two-gang switch running Tasmota](https://tasmota.github.io/docs/devices/Sonoff-Dual-R2/) open source firmware to integrate your switch-controlled covers:
-```
+```yaml
 'rf_myroom_cover_down':
   alias: 'Switches send MyRoom Cover DOWN'
   sequence:
@@ -116,7 +116,7 @@ To this end the position in the service has an optional parameter of 'confident'
 
 e.g. This example automation shows a reed sensor that indicate a garage door is closed when contact is made:
 
-```
+```yaml
 - id: 'garage_closed'
   alias: 'Doors: garage set closed when contact'
   description: ''
@@ -140,7 +140,7 @@ With RF covers, you could probably monitor for MQTT messages from your RF bridge
 ### Icon customization
 For proper icon display (opened/moving/closed) customization can be added to `configuration.yaml` based of what type of covers you have, either one by one, or for all covers at once:
 
-```
+```yaml
 homeassistant:
   customize_domain: #for all covers 
      cover:
@@ -156,7 +156,7 @@ Since there's no feedback from the cover about its current state, state is assum
 
 Tasmota is able to send out the radio-frequency commands very quickly. If some of your covers 'miss' the commands occassionally (you can see that from the fact that the state shown in Home Assistant does not correspond to reality), it may be that those cover motors do not understand the codes when they are sent 'at once' from Home Assistant. They are sent very quickly one after another and Tasmota can cope with that, however this can be too much for the motors themselves.
 To prevent that, make sure you **don't use** [cover groups](https://www.home-assistant.io/integrations/cover.group/) containing multiple covers provided by this integration, and also in automation **don't include multipe covers separated by commas** in one service call. You should create separate service calls for each cover, moreover, add 1 second delay between them:
-```
+```yaml
 - alias: 'Covers down when getting dark'
   trigger:
     - platform: numeric_state
