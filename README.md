@@ -135,7 +135,7 @@ e.g. This example automation shows a reed sensor that indicate a garage door is 
 
 As we have set confident to true down arrow is now no longer available in default  HA frontend when the cover is closed. If we ommitted the confident parameter all arrows would be available. The 'known state' (in this instance of being closed) is persisted until we trigger an action, as soon as position is based on timer logic we revert back to an assumed state, where all buttons are available.
 
-With RF covers, you could for example monitor for MQTT messages from your RF bridge and when a code transmitted by your remote corresponding to the close command is seen, you could update the cover's position to 0 by using a combination of binary sensors to track states based on codes seen in the air.
+With RF covers, you could probably monitor for MQTT messages from your RF bridge and when a code transmitted by your remote corresponding to the close command is seen, you could update the cover's position to 0 by using a combination of binary sensors to track states based on codes seen in the air. If you have such a setup working with this component, please submit a PR with example configuration.
 
 ### Icon customization
 For proper icon display (opened/moving/closed) customization can be added to `configuration.yaml` based of what type of covers you have, either one by one, or for all covers at once:
