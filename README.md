@@ -1,7 +1,7 @@
 # Cover Time Based Component RF (trigger script) version
 Cover Time Based Component for your [Home-Assistant](http://www.home-assistant.io) based on [davidramosweb's Cover Time Based Component](https://github.com/davidramosweb/home-assistant-custom-components-cover-time-based), modified for covers triggered by RF commands.
 
-With this component you can add a time-based cover. You have to set triggering scripts to open, close and stop the cover. Position is calculated based on the fraction of time spent by the cover travelling up or down. You can set position from within Home Assistant using service calls. When you use this component, you forget about the cover's original remote controllers or switches, because there's no feedback from the cover about its real state, state is assumed based on the last command sent from Home Assistant.
+With this component you can add a time-based cover. You have to set triggering scripts to open, close and stop the cover. Position is calculated based on the fraction of time spent by the cover travelling up or down. You can set position from within Home Assistant using service calls. When you use this component, you can forget about the cover's original remote controllers or switches, because there's no feedback from the cover about its real state, state is assumed based on the last command sent from Home Assistant. There's a custom service available where you can update the real state of the cover based on external sensors if you want to.
 
 You can adapt it to your requirements, actually any cover system could be used which uses 3 triggers: up, stop, down. The idea is to embed your triggers into scripts which can be hooked into this component via config. For example, you can use RF-bridge or dual-gang switch running Tasmota firmware integrated like in the examples shown below.
 
@@ -109,6 +109,34 @@ The example below assumes you've set `send_stop_at_ends: True` in the cover conf
 (Credits to [VDRainer](https://github.com/VDRainer) for the code. Note how you don't have to configure these as switches in Home Assistant at all, it's enough just to publish MQTT commands strainght from the script.)
 Of course you can customize based on what ever other way to trigger these 3 type of movements. You could, for example, turn on and off warning lights along with the movement.
 
+### Setting to a known position without triggering cover movement
+This component provides the `cover_rf_time_based.set_known_position` service that lets you specify the position of the cover if you have other sources of information, i.e. sensors. It's useful as the cover may have changed position outside of HA's knowledge, and also to allow a confirmed position to make the arrow buttons display more appropriately.
+
+To this end the position in the service has an optional parameter of 'confident' that affects how the cover is presented in HA.  Setting confident to ```true``` will mean that certain button operations aren't permitted.
+
+e.g. This example automation shows a reed sensor that indicate a garage door is closed when contact is made:
+
+```
+- id: 'garage_closed'
+  alias: 'Doors: garage set closed when contact'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.door_garage_cover
+    platform: state
+    to: 'off'
+  condition: []
+  action:
+  - data:
+      confident: true
+      entity_id: cover.garage_door
+      position: 0
+    service: cover_rf_time_based.set_known_position
+``` 
+
+As we have set confident to true down arrow is now no longer available in default  HA frontend when the cover is closed. If we ommitted the confident parameter all arrows would be available. The 'known state' (in this instance of being closed) is persisted until we trigger an action, as soon as position is based on timer logic we revert back to an assumed state, where all buttons are available.
+
+With RF covers, you could for example monitor for MQTT messages from your RF bridge and when a code transmitted by your remote corresponding to the close command is seen, you could update the cover's position to 0 by using a combination of binary sensors to track states based on codes seen in the air.
+
 ### Icon customization
 For proper icon display (opened/moving/closed) customization can be added to `configuration.yaml` based of what type of covers you have, either one by one, or for all covers at once:
 
@@ -152,50 +180,3 @@ To prevent that, make sure you **don't use** [cover groups](https://www.home-ass
         entity_id: cover.room_4
         position: 30
 ```
-
-### Service to set known position without triggering cover movement.
-
-This component provides a service that lets you specify the position of the cover if you have other sources of information, i.e. sensors.
-
-```
-  name. cover_rf_time_based.set_known_position:
-  description: Set position aquired outside of this component without triggering action
-  fields:
-    entity_id:
-      description: entity id of cover to set position for
-      example: cover.garage_door
-    position:
-      description: position of cover, between 0 and 100
-      example: 50
-    confident: (optional)
-      description: if we are confident in this position, i.e. affects if state is assumed or not
-      example: True
-```
-
-It's useful as the cover may have changed position outside of HA's knowledge, and also to allow a confirmed position to make the arrow buttons display more appropriately.
-
-To this end the position in the service has an optional parameter of 'confident' that affects how the cover is presented in HA.  Setting confident to ```true``` will mean that certain button operations aren't permitted.
-
-e.g. This example automation shows a reed sensor that indicate a garage door is closed when contact is made:
-
-```
-- id: 'garage_closed'
-  alias: 'Doors: garage set closed when contact'
-  description: ''
-  trigger:
-  - entity_id: binary_sensor.door_garage_cover
-    platform: state
-    to: 'off'
-  condition: []
-  action:
-  - data:
-      confident: true
-      entity_id: cover.garage_door
-      position: 0
-    service: cover_rf_time_based.set_known_position
-``` 
-
-As we have set confident to true down arrow is now no longer available in default  HA frontend when the cover is closed.
-If we ommitted the confident parameter all arrows would be available.
-
-The 'known state' (in this instance of being closed) is persisted until we trigger an action, as soon as position is based on timer logic we revert back to an assumed state, where all buttons are available.
