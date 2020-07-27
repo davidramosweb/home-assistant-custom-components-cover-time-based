@@ -185,8 +185,11 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         return self._assume_uncertain_position
  
     async def async_set_cover_position(self, **kwargs):
-        """Move the cover to a specific position."""
-        await self.set_position(position)
+       """Move the cover to a specific position."""
+       if ATTR_POSITION in kwargs:
+           position = kwargs[ATTR_POSITION]
+           _LOGGER.debug(self._name + ': ' + 'async_set_cover_position: %d', position)
+           await self.set_position(position)
 
     async def async_close_cover(self, **kwargs):
         """Turn the device close."""
