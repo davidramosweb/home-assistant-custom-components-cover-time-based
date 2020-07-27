@@ -152,3 +152,35 @@ To prevent that, make sure you **don't use** [cover groups](https://www.home-ass
         entity_id: cover.room_4
         position: 30
 ```
+
+### Service to set known position
+
+This service lets you specify the position of the cover if you have other sources of information, i.e. sensors.
+
+It's useful as the cover may have changed position outside of HA's knowledge, and also to allow a confirmed position to make the arrow buttons display more appropriately.
+
+To this end the position in the service also has an optional parameter of 'confident' that affects how the cover is presented in HA.  Setting confident to ```true``` will mean that certain button operations aren't permitted.
+
+e.g. This example automation shows a reed sensor that indicate a garage door is closed when contact is made:
+
+```
+- id: 'garage_closed'
+  alias: 'Doors: garage set closed when contact'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.door_garage_cover
+    platform: state
+    to: 'off'
+  condition: []
+  action:
+  - data:
+      confident: true
+      entity_id: cover.garage_door
+      position: 0
+    service: cover_rf_time_based.set_known_position
+``` 
+
+As we have set confident to true down arrow is now no longer available in default  HA frontend when the cover is closed.
+If we ommitted the confident parameter all arrows would be available.
+
+The 'known state' (in this instance of being closed) is persisted until we trigger an action, as soon as position is based on timer logic we revert back to an assumed state, where all buttons are available.

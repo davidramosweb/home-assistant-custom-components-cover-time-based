@@ -110,7 +110,7 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         self._close_script_entity_id = close_script_entity_id 
         self._stop_script_entity_id = stop_script_entity_id
         self._send_stop_at_ends = send_stop_at_ends
-        self._confident_in_known_position = False
+        self._assume_uncertain_position = True 
 
         if name:
             self._name = name
@@ -181,8 +181,8 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
 
     @property
     def assumed_state(self):
-        """Return False unless we have set position externally through send_know_position service."""
-        return self._confident_in_known_position
+        """Return True unless we have set position with confidence through send_know_position service."""
+        return self._assume_uncertain_position
  
     async def async_set_cover_position(self, **kwargs):
         """Move the cover to a specific position."""
@@ -263,7 +263,7 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         position = kwargs[ATTR_POSITION]
         confident = kwargs[ATTR_CONFIDENT] if ATTR_CONFIDENT in kwargs else False
         _LOGGER.debug(self._name + ': ' + 'set_known_position :: position received %d', position)
-        self._confident_in_known_position = confident 
+        self._assume_uncertain_position = not confident 
         self.tc.set_position(position)
 
     async def auto_stop_if_necessary(self):
@@ -282,7 +282,7 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
     
     async def _async_handle_command(self, command, *args):
         """As soon as we trigger an action we are unconfirmed, wait for sensor confirmation for assumed state"""
-        self._confident_in_known_position = False
+        self._assume_uncertain_position = True
         if command == "close_cover":
             cmd = "DOWN"
             self._state = False
