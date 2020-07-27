@@ -153,13 +153,28 @@ To prevent that, make sure you **don't use** [cover groups](https://www.home-ass
         position: 30
 ```
 
-### Service to set known position
+### Service to set known position without triggering cover movement.
 
-This service lets you specify the position of the cover if you have other sources of information, i.e. sensors.
+This component provides a service that lets you specify the position of the cover if you have other sources of information, i.e. sensors.
+
+```
+  name. cover_rf_time_based.set_known_position:
+  description: Set position aquired outside of this component without triggering action
+  fields:
+    entity_id:
+      description: entity id of cover to set position for
+      example: cover.garage_door
+    position:
+      description: position of cover, between 0 and 100
+      example: 50
+    confident: (optional)
+      description: if we are confident in this position, i.e. affects if state is assumed or not
+      example: True
+```
 
 It's useful as the cover may have changed position outside of HA's knowledge, and also to allow a confirmed position to make the arrow buttons display more appropriately.
 
-To this end the position in the service also has an optional parameter of 'confident' that affects how the cover is presented in HA.  Setting confident to ```true``` will mean that certain button operations aren't permitted.
+To this end the position in the service has an optional parameter of 'confident' that affects how the cover is presented in HA.  Setting confident to ```true``` will mean that certain button operations aren't permitted.
 
 e.g. This example automation shows a reed sensor that indicate a garage door is closed when contact is made:
 
