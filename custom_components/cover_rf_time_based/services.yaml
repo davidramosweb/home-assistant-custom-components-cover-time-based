@@ -4,3 +4,15 @@ send_command:
   fields:
     command: {description: The command to be sent., example: 'open_cover'}
     device_id: {description: device ID.}
+set_known_position:
+  description: Set position aquired outside of this component without triggering action
+  fields:
+    entity_id:
+      description: entity id of cover to set position for
+      example: cover.garage_door
+    position:
+      description: position of cover, between 0 and 100
+      example: 50
+    confident:
+      description: if we are confident in this position, i.e. affects if state is assumed or not
+      example: True

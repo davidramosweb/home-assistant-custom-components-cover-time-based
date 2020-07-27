@@ -6,6 +6,7 @@ import voluptuous as vol
 from datetime import timedelta
 
 from homeassistant.core import callback
+from homeassistant.helpers import entity_platform
 from homeassistant.helpers.event import async_track_utc_time_change, async_track_time_interval
 from homeassistant.components.cover import (
     ATTR_CURRENT_POSITION,
@@ -15,6 +16,7 @@ from homeassistant.components.cover import (
 )
 from homeassistant.const import (
     CONF_NAME,
+    ATTR_ENTITY_ID,
     SERVICE_CLOSE_COVER,
     SERVICE_OPEN_COVER,
     SERVICE_STOP_COVER,
@@ -37,6 +39,9 @@ DEFAULT_SEND_STOP_AT_ENDS = False
 CONF_OPEN_SCRIPT_ENTITY_ID = 'open_script_entity_id'
 CONF_CLOSE_SCRIPT_ENTITY_ID = 'close_script_entity_id'
 CONF_STOP_SCRIPT_ENTITY_ID = 'stop_script_entity_id'
+ATTR_CONFIDENT = 'confident'
+ATTR_POSITION = 'position'
+SERVICE_SET_KNOWN_POSITION = 'set_known_position'
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
@@ -57,6 +62,16 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     }
 )
 
+POSITION_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_ids,
+        vol.Required(ATTR_POSITION): cv.positive_int,
+        vol.Optional(ATTR_CONFIDENT, default=False): cv.boolean
+    }
+)
+
+DOMAIN = "cover_rf_time_based"
+
 def devices_from_config(domain_config):
     """Parse configuration and add cover devices."""
     devices = []
@@ -72,27 +87,36 @@ def devices_from_config(domain_config):
         devices.append(device)
     return devices
 
+
+
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the cover platform."""
     async_add_entities(devices_from_config(config))
 
+    platform = entity_platform.current_platform.get()
+
+    platform.async_register_entity_service(
+        SERVICE_SET_KNOWN_POSITION, POSITION_SCHEMA, "set_known_position"
+    )
+
+
 class CoverTimeBased(CoverEntity, RestoreEntity):
-	
     def __init__(self, device_id, name, travel_time_down, travel_time_up, open_script_entity_id, close_script_entity_id, stop_script_entity_id, send_stop_at_ends):
         """Initialize the cover."""
         from xknx.devices import TravelCalculator
         self._travel_time_down = travel_time_down
         self._travel_time_up = travel_time_up
         self._open_script_entity_id = open_script_entity_id
-        self._close_script_entity_id = close_script_entity_id        
-        self._stop_script_entity_id = stop_script_entity_id        
-        self._send_stop_at_ends = send_stop_at_ends        
+        self._close_script_entity_id = close_script_entity_id 
+        self._stop_script_entity_id = stop_script_entity_id
+        self._send_stop_at_ends = send_stop_at_ends
+        self._assume_uncertain_position = True 
 
         if name:
             self._name = name
         else:
             self._name = device_id
-		
+
         self._unsubscribe_auto_updater = None
 
         self.tc = TravelCalculator(self._travel_time_down, self._travel_time_up)
@@ -157,15 +181,15 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
 
     @property
     def assumed_state(self):
-        """Return True because covers can be stopped midway."""
-        return True
-
+        """Return True unless we have set position with confidence through send_know_position service."""
+        return self._assume_uncertain_position
+ 
     async def async_set_cover_position(self, **kwargs):
-        """Move the cover to a specific position."""
-        if ATTR_POSITION in kwargs:
-            position = kwargs[ATTR_POSITION]
-            _LOGGER.debug(self._name + ': ' + 'async_set_cover_position: %d', position)
-            await self.set_position(position)
+       """Move the cover to a specific position."""
+       if ATTR_POSITION in kwargs:
+           position = kwargs[ATTR_POSITION]
+           _LOGGER.debug(self._name + ': ' + 'async_set_cover_position: %d', position)
+           await self.set_position(position)
 
     async def async_close_cover(self, **kwargs):
         """Turn the device close."""
@@ -205,6 +229,7 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
             self.tc.start_travel(position)
             _LOGGER.debug(self._name + ': ' + 'set_position :: command %s', command)
             await self._async_handle_command(command)
+
         return
 
     def start_auto_updater(self):
@@ -237,6 +262,13 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         """Return if cover has reached its final position."""
         return self.tc.position_reached()
 
+    async def set_known_position(self, **kwargs):
+        position = kwargs[ATTR_POSITION]
+        confident = kwargs[ATTR_CONFIDENT] if ATTR_CONFIDENT in kwargs else False
+        _LOGGER.debug(self._name + ': ' + 'set_known_position :: position received %d', position)
+        self._assume_uncertain_position = not confident 
+        self.tc.set_position(position)
+
     async def auto_stop_if_necessary(self):
         """Do auto stop if necessary."""
         current_position = self.tc.current_position()
@@ -252,6 +284,8 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
     
     
     async def _async_handle_command(self, command, *args):
+        """As soon as we trigger an action we are unconfirmed, wait for sensor confirmation for assumed state"""
+        self._assume_uncertain_position = True
         if command == "close_cover":
             cmd = "DOWN"
             self._state = False
