@@ -112,13 +112,14 @@ Of course you can customize based on what ever other way to trigger these 3 type
 
 ### Service to set or move to position without triggering cover movement.
 
-This component provides the ```cover_rf_time_based.set_known_position`` service that lets you specify the position of the cover if you have other sources of information, i.e. sensors. It's useful as the cover may have changed position outside of HA's knowledge, and also to allow a confirmed position to make the arrow buttons display more appropriately.
+This component provides the ```cover_rf_time_based.set_known_position``` service that lets you specify the position of the cover if you have other sources of information, i.e. sensors. It's useful as the cover may have changed position outside of HA's knowledge, and also to allow a confirmed position to make the arrow buttons display more appropriately.
 
 To this end the position in the service has an optional parameter of 'confident' that affects how the cover is presented in HA. Setting confident to ```true``` will mean that certain button operations aren't permitted.
-Another optional parameter of ```position_type``` allows the setting of either the target or current posistion, following examples explain usage:
+
+Another optional parameter of ```position_type``` allows the setting of either the ```target``` or ```current``` posistion.
 
 
-Following examples to help explaing parametes:
+Following examples to help explain parameters and use cases:
 
 1.  This example automation uses ```position_type: current``` and ```confident: true``` when a reed sensor has indicated a garage door is closed when contact is made:
 
@@ -140,14 +141,14 @@ Following examples to help explaing parametes:
     service: cover_rf_time_based.set_known_position
 ``` 
 
-We have set ```confident``` to ```true`` as the sensor has confirmed a final position. The down arrow is now no longer available in default  HA frontend when the cover is closed. 
+We have set ```confident``` to ```true``` as the sensor has confirmed a final position. The down arrow is now no longer available in default  HA frontend when the cover is closed. 
 ```position_type``` of ```current``` means the current position is moved immediately to 0 and stops there (provided cover is not moving, otherwise will contiune moving to original target). 
 
 
 2.  This example uses ```position_type: target``` (the default) and ```confident: false``` (also default) where an RF bridge has interecepted an RF command, so we know an external remote has triggered cover opening action:
 
 ```yaml
-- id: 'garage_opening'
+- id: 'rf_cover_opening'
   alias: 'RF_Cover: set opening when rf received'
   description: ''
   trigger:
