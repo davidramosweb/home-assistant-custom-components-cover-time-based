@@ -225,7 +225,7 @@ As we have set confident to true as the sensor has confirmed a final position. T
 ```
 
 ```confident``` is omitted so defaulted to ```false``` as we're not sure where the movement may end, so all arrows are available.
-```position_type``` is omitted so defaulted```target``, meaning cover will transition to ```position``` without triggering any start or stop actions.
+```position_type``` is omitted so defaulted```target```, meaning cover will transition to ```position``` without triggering any start or stop actions.
 
 
 
