@@ -1,4 +1,3 @@
-  
 send_command:
   description: Send device command through Cover.
   fields:
@@ -14,9 +13,9 @@ set_known_position:
       description: position of cover, between 0 and 100
       example: 50
     confident:
-      description: optional (default is false) - if we are confident in this position, i.e. affects if state is assumed or not
+      description: optional (default is false) - if we are confident in this position, i.e. affects if state is assumed or not. To be used for example with a contact sensor confirming that the position was really reached.
       example: True
     position_type:
-      description: optional (default is target)- specifies if the position we are passing in is the target or the current position. Defaults to target meaning we will transition slider from current posution to given target. Specifiying current will set current position.
+      description: optional (default is target) - specifies if the position we are passing in is the target or the current position. Defaults to target meaning we will transition slider from current posution to given target. Specifiying current will set to the current position immediately.
       example: current
 
