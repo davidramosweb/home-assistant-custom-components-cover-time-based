@@ -114,7 +114,7 @@ Of course you can customize based on what ever other way to trigger these 3 type
 
 This component provides the ```cover_rf_time_based.set_known_position``` service that lets you specify the position of the cover if you have other sources of information, i.e. sensors. It's useful as the cover may have changed position outside of HA's knowledge, and also to allow a confirmed position to make the arrow buttons display more appropriately.
 
-To this end the position in the service has an optional parameter of 'confident' that affects how the cover is presented in HA. Setting confident to ```true``` will mean that certain button operations aren't permitted.
+To this end the position in the service has an optional parameter of ```confident``` that affects how the cover is presented in HA. Setting confident to ```true``` will mean that certain button operations aren't permitted.
 
 Another optional parameter of ```position_type``` allows the setting of either the ```target``` or ```current``` posistion.
 
@@ -167,7 +167,7 @@ We have set ```confident``` to ```true``` as the sensor has confirmed a final po
 ```
 
 ```confident``` is omitted so defaulted to ```false``` as we're not sure where the movement may end, so all arrows are available.
-```position_type``` is omitted so defaulted```target```, meaning cover will transition to ```position``` without triggering any start or stop actions.
+```position_type``` is omitted so defaulted to ```target```, meaning cover will transition to ```position``` without triggering any start or stop actions.
 
 
 ### Icon customization
