@@ -1,7 +1,7 @@
 # Cover Time Based Component RF (trigger script) version
 Cover Time Based Component for your [Home-Assistant](http://www.home-assistant.io) based on [davidramosweb's Cover Time Based Component](https://github.com/davidramosweb/home-assistant-custom-components-cover-time-based), modified for covers triggered by RF commands.
 
-With this component you can add a time-based cover. You have to set triggering scripts to open, close and stop the cover. Position is calculated based on the fraction of time spent by the cover travelling up or down. You can set position from within Home Assistant using service calls. When you use this component, you forget about the cover's original remote controllers or switches, because there's no feedback from the cover about its real state, state is assumed based on the last command sent from Home Assistant.
+With this component you can add a time-based cover. You have to set triggering scripts to open, close and stop the cover. Position is calculated based on the fraction of time spent by the cover travelling up or down. You can set position from within Home Assistant using service calls. When you use this component, you can forget about the cover's original remote controllers or switches, because there's no feedback from the cover about its real state, state is assumed based on the last command sent from Home Assistant. There's a custom service available where you can update the real state of the cover based on external sensors if you want to.
 
 You can adapt it to your requirements, actually any cover system could be used which uses 3 triggers: up, stop, down. The idea is to embed your triggers into scripts which can be hooked into this component via config. For example, you can use RF-bridge or dual-gang switch running Tasmota firmware integrated like in the examples shown below.
 
@@ -19,7 +19,7 @@ You can adapt it to your requirements, actually any cover system could be used w
 To use this component in your installation, you have to set RF-sending scripts to open, close and stop the cover (see below), and add the following to your configuration.yaml file:
 
 ### Example configuration.yaml entry
-```
+```yaml
 cover:
   - platform: cover_rf_time_based
     devices:
@@ -42,7 +42,7 @@ Optional settings:
 
 ### Example scripts.yaml entry
 The following example assumes that you're using an [MQTT-RF bridge running Tasmota](https://tasmota.github.io/docs/devices/Sonoff-RF-Bridge-433/) open source firmware to integrate your radio-controlled covers:
-```
+```yaml
 'rf_myroom_cover_down':
   alias: 'RF send MyRoom Cover DOWN'
   sequence:
@@ -69,7 +69,7 @@ The following example assumes that you're using an [MQTT-RF bridge running Tasmo
 ```
 
 The example below assumes you've set `send_stop_at_ends: True` in the cover config, and you're using any [two-gang switch running Tasmota](https://tasmota.github.io/docs/devices/Sonoff-Dual-R2/) open source firmware to integrate your switch-controlled covers:
-```
+```yaml
 'rf_myroom_cover_down':
   alias: 'Switches send MyRoom Cover DOWN'
   sequence:
@@ -109,10 +109,38 @@ The example below assumes you've set `send_stop_at_ends: True` in the cover conf
 (Credits to [VDRainer](https://github.com/VDRainer) for the code. Note how you don't have to configure these as switches in Home Assistant at all, it's enough just to publish MQTT commands strainght from the script.)
 Of course you can customize based on what ever other way to trigger these 3 type of movements. You could, for example, turn on and off warning lights along with the movement.
 
+### Setting to a known position without triggering cover movement
+This component provides the `cover_rf_time_based.set_known_position` service that lets you specify the position of the cover if you have other sources of information, i.e. sensors. It's useful as the cover may have changed position outside of HA's knowledge, and also to allow a confirmed position to make the arrow buttons display more appropriately.
+
+To this end the position in the service has an optional parameter of 'confident' that affects how the cover is presented in HA.  Setting confident to ```true``` will mean that certain button operations aren't permitted.
+
+e.g. This example automation shows a reed sensor that indicate a garage door is closed when contact is made:
+
+```yaml
+- id: 'garage_closed'
+  alias: 'Doors: garage set closed when contact'
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.door_garage_cover
+    platform: state
+    to: 'off'
+  condition: []
+  action:
+  - data:
+      confident: true
+      entity_id: cover.garage_door
+      position: 0
+    service: cover_rf_time_based.set_known_position
+``` 
+
+As we have set confident to true down arrow is now no longer available in default  HA frontend when the cover is closed. If we ommitted the confident parameter all arrows would be available. The 'known state' (in this instance of being closed) is persisted until we trigger an action, as soon as position is based on timer logic we revert back to an assumed state, where all buttons are available.
+
+With RF covers, you could probably monitor for MQTT messages from your RF bridge and when a code transmitted by your remote corresponding to the close command is seen, you could update the cover's position to 0 by using a combination of binary sensors to track states based on codes seen in the air. If you have such a setup working with this component, please submit a PR with example configuration.
+
 ### Icon customization
 For proper icon display (opened/moving/closed) customization can be added to `configuration.yaml` based of what type of covers you have, either one by one, or for all covers at once:
 
-```
+```yaml
 homeassistant:
   customize_domain: #for all covers 
      cover:
@@ -128,7 +156,7 @@ Since there's no feedback from the cover about its current state, state is assum
 
 Tasmota is able to send out the radio-frequency commands very quickly. If some of your covers 'miss' the commands occassionally (you can see that from the fact that the state shown in Home Assistant does not correspond to reality), it may be that those cover motors do not understand the codes when they are sent 'at once' from Home Assistant. They are sent very quickly one after another and Tasmota can cope with that, however this can be too much for the motors themselves.
 To prevent that, make sure you **don't use** [cover groups](https://www.home-assistant.io/integrations/cover.group/) containing multiple covers provided by this integration, and also in automation **don't include multipe covers separated by commas** in one service call. You should create separate service calls for each cover, moreover, add 1 second delay between them:
-```
+```yaml
 - alias: 'Covers down when getting dark'
   trigger:
     - platform: numeric_state
@@ -157,7 +185,7 @@ To prevent that, make sure you **don't use** [cover groups](https://www.home-ass
 
 This component provides a service that lets you specify the position of the cover if you have other sources of information, i.e. sensors.
 
-```
+```yaml
 set_known_position:
   description: Set position aquired outside of this component without triggering action
   fields:
@@ -181,7 +209,7 @@ Following examples to help explaing parametes:
 
 1.  This example automation uses ```position_type: current``` when a reed sensor has indicated a garage door is closed when contact is made:
 
-```
+```yaml
 - id: 'garage_closed'
   alias: 'Doors: garage set closed when contact'
   description: ''
@@ -205,7 +233,7 @@ As we have set confident to true as the sensor has confirmed a final position. T
 
 2.  This example uses ```position_type: target``` (the default) and ```confident: false``` (also default) where an RF bridge has interecepted an RF command, so we know an external remote has triggered cover opening action:
 
-```
+```yaml
 - id: 'garage_opening'
   alias: 'RF_Cover: set opening when rf received'
   description: ''
@@ -226,6 +254,4 @@ As we have set confident to true as the sensor has confirmed a final position. T
 
 ```confident``` is omitted so defaulted to ```false``` as we're not sure where the movement may end, so all arrows are available.
 ```position_type``` is omitted so defaulted```target```, meaning cover will transition to ```position``` without triggering any start or stop actions.
-
-
 
