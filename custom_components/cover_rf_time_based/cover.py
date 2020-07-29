@@ -1,10 +1,7 @@
 """Cover Time based, RF version."""
 import logging
-
 import voluptuous as vol
-
 from datetime import timedelta
-
 from homeassistant.core import callback
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.event import async_track_utc_time_change, async_track_time_interval
@@ -92,8 +89,6 @@ def devices_from_config(domain_config):
         devices.append(device)
     return devices
 
-
-
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the cover platform."""
     async_add_entities(devices_from_config(config))
@@ -103,7 +98,6 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     platform.async_register_entity_service(
         SERVICE_SET_KNOWN_POSITION, POSITION_SCHEMA, "set_known_position"
     )
-
 
 class CoverTimeBased(CoverEntity, RestoreEntity):
     def __init__(self, device_id, name, travel_time_down, travel_time_up, open_script_entity_id, close_script_entity_id, stop_script_entity_id, send_stop_at_ends):
