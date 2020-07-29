@@ -109,12 +109,18 @@ The example below assumes you've set `send_stop_at_ends: True` in the cover conf
 (Credits to [VDRainer](https://github.com/VDRainer) for the code. Note how you don't have to configure these as switches in Home Assistant at all, it's enough just to publish MQTT commands strainght from the script.)
 Of course you can customize based on what ever other way to trigger these 3 type of movements. You could, for example, turn on and off warning lights along with the movement.
 
-### Setting to a known position without triggering cover movement
-This component provides the `cover_rf_time_based.set_known_position` service that lets you specify the position of the cover if you have other sources of information, i.e. sensors. It's useful as the cover may have changed position outside of HA's knowledge, and also to allow a confirmed position to make the arrow buttons display more appropriately.
 
-To this end the position in the service has an optional parameter of 'confident' that affects how the cover is presented in HA.  Setting confident to ```true``` will mean that certain button operations aren't permitted.
+### Service to set or move to position without triggering cover movement.
 
-e.g. This example automation shows a reed sensor that indicate a garage door is closed when contact is made:
+This component provides the ```cover_rf_time_based.set_known_position`` service that lets you specify the position of the cover if you have other sources of information, i.e. sensors. It's useful as the cover may have changed position outside of HA's knowledge, and also to allow a confirmed position to make the arrow buttons display more appropriately.
+
+To this end the position in the service has an optional parameter of 'confident' that affects how the cover is presented in HA. Setting confident to ```true``` will mean that certain button operations aren't permitted.
+Another optional parameter of ```position_type``` allows the setting of either the target or current posistion, following examples explain usage:
+
+
+Following examples to help explaing parametes:
+
+1.  This example automation uses ```position_type: current``` and ```confident: true``` when a reed sensor has indicated a garage door is closed when contact is made:
 
 ```yaml
 - id: 'garage_closed'
@@ -130,12 +136,38 @@ e.g. This example automation shows a reed sensor that indicate a garage door is 
       confident: true
       entity_id: cover.garage_door
       position: 0
+      position_type: current
     service: cover_rf_time_based.set_known_position
 ``` 
 
-As we have set confident to true down arrow is now no longer available in default  HA frontend when the cover is closed. If we ommitted the confident parameter all arrows would be available. The 'known state' (in this instance of being closed) is persisted until we trigger an action, as soon as position is based on timer logic we revert back to an assumed state, where all buttons are available.
+We have set ```confident``` to ```true`` as the sensor has confirmed a final position. The down arrow is now no longer available in default  HA frontend when the cover is closed. 
+```position_type``` of ```current``` means the current position is moved immediately to 0 and stops there (provided cover is not moving, otherwise will contiune moving to original target). 
 
-With RF covers, you could probably monitor for MQTT messages from your RF bridge and when a code transmitted by your remote corresponding to the close command is seen, you could update the cover's position to 0 by using a combination of binary sensors to track states based on codes seen in the air. If you have such a setup working with this component, please submit a PR with example configuration.
+
+2.  This example uses ```position_type: target``` (the default) and ```confident: false``` (also default) where an RF bridge has interecepted an RF command, so we know an external remote has triggered cover opening action:
+
+```yaml
+- id: 'garage_opening'
+  alias: 'RF_Cover: set opening when rf received'
+  description: ''
+  trigger:
+  - entity_id: sensor.rf_command
+    platform: state
+    to: 'open'
+  condition: 
+  - condition: state
+    entity_id: cover.rf_cover
+    state: closed
+  action:
+  - data:
+      entity_id: cover.rf_cover
+      position: 100
+    service: cover_rf_time_based.set_known_position
+```
+
+```confident``` is omitted so defaulted to ```false``` as we're not sure where the movement may end, so all arrows are available.
+```position_type``` is omitted so defaulted```target```, meaning cover will transition to ```position``` without triggering any start or stop actions.
+
 
 ### Icon customization
 For proper icon display (opened/moving/closed) customization can be added to `configuration.yaml` based of what type of covers you have, either one by one, or for all covers at once:
@@ -180,78 +212,4 @@ To prevent that, make sure you **don't use** [cover groups](https://www.home-ass
         entity_id: cover.room_4
         position: 30
 ```
-
-### Service to set or move to position without triggering cover movement.
-
-This component provides a service that lets you specify the position of the cover if you have other sources of information, i.e. sensors.
-
-```yaml
-set_known_position:
-  description: Set position aquired outside of this component without triggering action
-  fields:
-    entity_id:
-      description: entity id of cover to set position for
-      example: cover.garage_door
-    position:
-      description: position of cover, between 0 and 100
-      example: 50
-    confident:
-      description: optional (default is false) - if we are confident in this position, i.e. affects if state is assumed or not
-      example: True
-    position_type:
-      description: optional (default is target)- specifies if the position we are passing in is the target or the current position. Defaults to target meaning we will transition slider from current posution to given target. Specifiying >
-      example: current
-```
-
-It's useful as the cover may have changed position outside of HA's knowledge, and also to allow a confirmed position to make the arrow buttons display more appropriately.
-
-Following examples to help explaing parametes:
-
-1.  This example automation uses ```position_type: current``` when a reed sensor has indicated a garage door is closed when contact is made:
-
-```yaml
-- id: 'garage_closed'
-  alias: 'Doors: garage set closed when contact'
-  description: ''
-  trigger:
-  - entity_id: binary_sensor.door_garage_cover
-    platform: state
-    to: 'off'
-  condition: []
-  action:
-  - data:
-      confident: true
-      entity_id: cover.garage_door
-      position: 0
-      position_type: current
-    service: cover_rf_time_based.set_known_position
-``` 
-
-As we have set confident to true as the sensor has confirmed a final position. The down arrow is now no longer available in default  HA frontend when the cover is closed. 
-```position_type``` of current means the current position is moved immediately to 0 and stop (provided cover is not moving, otherwise will contiune moving to original target). 
-
-
-2.  This example uses ```position_type: target``` (the default) and ```confident: false``` (also default) where an RF bridge has interecepted an RF command, so we know an external remote has triggered cover opening action:
-
-```yaml
-- id: 'garage_opening'
-  alias: 'RF_Cover: set opening when rf received'
-  description: ''
-  trigger:
-  - entity_id: sensor.rf_command
-    platform: state
-    to: 'open'
-  condition: 
-  - condition: state
-    entity_id: cover.rf_cover
-    state: closed
-  action:
-  - data:
-      entity_id: cover.rf_cover
-      position: 100
-    service: cover_rf_time_based.set_known_position
-```
-
-```confident``` is omitted so defaulted to ```false``` as we're not sure where the movement may end, so all arrows are available.
-```position_type``` is omitted so defaulted```target```, meaning cover will transition to ```position``` without triggering any start or stop actions.
 
