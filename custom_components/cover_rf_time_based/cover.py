@@ -44,7 +44,7 @@ ATTR_POSITION = 'position'
 ATTR_POSITION_TYPE = 'position_type'
 ATTR_POSITION_TYPE_CURRENT = 'current'
 ATTR_POSITION_TYPE_TARGET = 'target'
-
+ATTR_RESTORE_ASSUMED_STATE = 'restore_assumed_state'
 SERVICE_SET_KNOWN_POSITION = 'set_known_position'
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
@@ -112,10 +112,10 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         self._travel_time_down = travel_time_down
         self._travel_time_up = travel_time_up
         self._open_script_entity_id = open_script_entity_id
-        self._close_script_entity_id = close_script_entity_id
+        self._close_script_entity_id = close_script_entity_id 
         self._stop_script_entity_id = stop_script_entity_id
         self._send_stop_at_ends = send_stop_at_ends
-        self._assume_uncertain_position = True
+        self._assume_uncertain_position = True 
         self._target_position = 0
         self._processing_known_position = False
 
@@ -133,12 +133,10 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         """ The rest is calculated from this attribute."""
         old_state = await self.async_get_last_state()
         _LOGGER.debug(self._name + ': ' + 'async_added_to_hass :: oldState %s', old_state)
-        if (
-                old_state is not None and
-                self.tc is not None and
-                old_state.attributes.get(ATTR_CURRENT_POSITION) is not None):
-            self.tc.set_position(int(
-                old_state.attributes.get(ATTR_CURRENT_POSITION)))
+        if (old_state is not None and self.tc is not None and old_state.attributes.get(ATTR_CURRENT_POSITION) is not None):
+            self.tc.set_position(int(old_state.attributes.get(ATTR_CURRENT_POSITION)))
+        if (old_state is not None and old_state.attributes.get(ATTR_RESTORE_ASSUMED_STATE) is not None):
+            self._assume_uncertain_position =  old_state.attributes.get(ATTR_RESTORE_ASSUMED_STATE).lower in ["yes", "true", "1"]
 
     def _handle_my_button(self):
         """Handle the MY button press"""
@@ -146,6 +144,11 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
             _LOGGER.debug(self._name + ': ' + '_handle_my_button :: button stops cover')
             self.tc.stop()
             self.stop_auto_updater()
+
+    @property
+    def restore_assumed_state(self):
+        """Return the assume state as a string to persist through restarts ."""
+        return str(self.assumed_state)
 
     @property
     def name(self):
@@ -160,6 +163,8 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
             attr[CONF_TRAVELLING_TIME_DOWN] = self._travel_time_down
         if self._travel_time_up is not None:
             attr[CONF_TRAVELLING_TIME_UP] = self._travel_time_up
+        attr[ATTR_RESTORE_ASSUMED_STATE] = str(self._assume_uncertain_position)
+ 
         return attr
 
     @property
@@ -331,6 +336,6 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
             await self.hass.services.async_call("homeassistant", "turn_on", {"entity_id": self._stop_script_entity_id}, False)
 
         _LOGGER.debug(self._name + ': ' + '_async_handle_command :: %s', cmd)
-
+        
         # Update state of entity
         self.async_write_ha_state()
