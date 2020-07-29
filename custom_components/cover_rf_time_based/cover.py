@@ -41,6 +41,10 @@ CONF_CLOSE_SCRIPT_ENTITY_ID = 'close_script_entity_id'
 CONF_STOP_SCRIPT_ENTITY_ID = 'stop_script_entity_id'
 ATTR_CONFIDENT = 'confident'
 ATTR_POSITION = 'position'
+ATTR_POSITION_TYPE = 'position_type'
+ATTR_POSITION_TYPE_CURRENT = 'current'
+ATTR_POSITION_TYPE_TARGET = 'target'
+
 SERVICE_SET_KNOWN_POSITION = 'set_known_position'
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
@@ -66,7 +70,8 @@ POSITION_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_ids,
         vol.Required(ATTR_POSITION): cv.positive_int,
-        vol.Optional(ATTR_CONFIDENT, default=False): cv.boolean
+        vol.Optional(ATTR_CONFIDENT, default=False): cv.boolean,
+        vol.Optional(ATTR_POSITION_TYPE, default=ATTR_POSITION_TYPE_TARGET): cv.string
     }
 )
 
@@ -107,10 +112,12 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         self._travel_time_down = travel_time_down
         self._travel_time_up = travel_time_up
         self._open_script_entity_id = open_script_entity_id
-        self._close_script_entity_id = close_script_entity_id 
+        self._close_script_entity_id = close_script_entity_id
         self._stop_script_entity_id = stop_script_entity_id
         self._send_stop_at_ends = send_stop_at_ends
-        self._assume_uncertain_position = True 
+        self._assume_uncertain_position = True
+        self._target_position = 0
+        self._processing_known_position = False
 
         if name:
             self._name = name
@@ -187,14 +194,15 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
     async def async_set_cover_position(self, **kwargs):
        """Move the cover to a specific position."""
        if ATTR_POSITION in kwargs:
-           position = kwargs[ATTR_POSITION]
-           _LOGGER.debug(self._name + ': ' + 'async_set_cover_position: %d', position)
-           await self.set_position(position)
+           self._target_position = kwargs[ATTR_POSITION]
+           _LOGGER.debug(self._name + ': ' + 'async_set_cover_position: %d', self._target_position)
+           await self.set_position(self._target_position)
 
     async def async_close_cover(self, **kwargs):
         """Turn the device close."""
         _LOGGER.debug(self._name + ': ' + 'async_close_cover')
         self.tc.start_travel_down()
+        self._target_position = 0
 
         self.start_auto_updater()
         await self._async_handle_command(SERVICE_CLOSE_COVER)
@@ -203,6 +211,7 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         """Turn the device open."""
         _LOGGER.debug(self._name + ': ' + 'async_open_cover')
         self.tc.start_travel_up()
+        self._target_position = 100
 
         self.start_auto_updater()
         await self._async_handle_command(SERVICE_OPEN_COVER)
@@ -263,16 +272,36 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         return self.tc.position_reached()
 
     async def set_known_position(self, **kwargs):
+        """We want to do a few things when we get a position"""
         position = kwargs[ATTR_POSITION]
         confident = kwargs[ATTR_CONFIDENT] if ATTR_CONFIDENT in kwargs else False
-        _LOGGER.debug(self._name + ': ' + 'set_known_position :: position received %d', position)
+        position_type = kwargs[ATTR_POSITION_TYPE] if ATTR_POSITION_TYPE in kwargs else ATTR_POSITION_TYPE_TARGET
+        if position_type not in [ATTR_POSITION_TYPE_TARGET, ATTR_POSITION_TYPE_CURRENT]:
+          raise ValueError(ATTR_POSITION_TYPE + " must be one of %s, %s", ATTR_POSITION_TYPE_TARGET,ATTR_POSITION_TYPE_CURRENT)
+        _LOGGER.debug(self._name + ': ' + 'set_known_position :: position  %d, confident %s, position_type %s, self.tc.is_traveling%s', position, str(confident), position_type, str(self.tc.is_traveling()))
         self._assume_uncertain_position = not confident 
-        self.tc.set_position(position)
+        self._processing_known_position = True
+        if position_type == ATTR_POSITION_TYPE_TARGET:
+          self._target_position = position
+          position = self.current_cover_position
+
+
+        if self.tc.is_traveling():
+          self.tc.set_position(position)
+          self.tc.start_travel(self._target_position)
+          self.start_auto_updater()
+        else:
+          if position_type == ATTR_POSITION_TYPE_TARGET:
+            self.tc.start_travel(self._target_position)
+            self.start_auto_updater()
+          else:
+            _LOGGER.debug(self._name + ': ' + 'set_known_position :: non_traveling position  %d, confident %s, position_type %s', position, str(confident), position_type)
+            self.tc.set_position(position)
 
     async def auto_stop_if_necessary(self):
         """Do auto stop if necessary."""
         current_position = self.tc.current_position()
-        if self.position_reached():
+        if self.position_reached() and not self._processing_known_position:
             self.tc.stop()
             if (current_position > 0) and (current_position < 100):
                 _LOGGER.debug(self._name + ': ' + 'auto_stop_if_necessary :: current_position between 1 and 99 :: calling stop command')
@@ -281,27 +310,27 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
                 if self._send_stop_at_ends:
                     _LOGGER.debug(self._name + ': ' + 'auto_stop_if_necessary :: send_stop_at_ends :: calling stop command')
                     await self._async_handle_command(SERVICE_STOP_COVER)
-    
-    
+
     async def _async_handle_command(self, command, *args):
-        """As soon as we trigger an action we are unconfirmed, wait for sensor confirmation for assumed state"""
+        """We have cover.* triggered command. Reset assumed state and known_position processsing and execute"""
         self._assume_uncertain_position = True
+        self._processing_known_position = False
         if command == "close_cover":
             cmd = "DOWN"
             self._state = False
             await self.hass.services.async_call("homeassistant", "turn_on", {"entity_id": self._close_script_entity_id}, False)
-            
+
         elif command == "open_cover":
             cmd = "UP"
             self._state = True
             await self.hass.services.async_call("homeassistant", "turn_on", {"entity_id": self._open_script_entity_id}, False)
- 
+
         elif command == "stop_cover":
             cmd = "STOP"
             self._state = True
             await self.hass.services.async_call("homeassistant", "turn_on", {"entity_id": self._stop_script_entity_id}, False)
 
         _LOGGER.debug(self._name + ': ' + '_async_handle_command :: %s', cmd)
-        
+
         # Update state of entity
         self.async_write_ha_state()
