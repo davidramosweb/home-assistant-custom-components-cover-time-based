@@ -133,7 +133,6 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         self._assume_uncertain_position = True 
         self._target_position = 0
         self._processing_known_position = False
-        self._processing_known_action = False
 
         if name:
             self._name = name
@@ -225,8 +224,7 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         self._target_position = 0
 
         self.start_auto_updater()
-        if not self._processing_known_action:
-          await self._async_handle_command(SERVICE_CLOSE_COVER)
+        await self._async_handle_command(SERVICE_CLOSE_COVER)
 
     async def async_open_cover(self, **kwargs):
         """Turn the device open."""
@@ -235,15 +233,13 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         self._target_position = 100
 
         self.start_auto_updater()
-        if not self._processing_known_action:
-          await self._async_handle_command(SERVICE_OPEN_COVER)
+        await self._async_handle_command(SERVICE_OPEN_COVER)
 
     async def async_stop_cover(self, **kwargs):
         """Turn the device stop."""
         _LOGGER.debug(self._name + ': ' + 'async_stop_cover')
         self._handle_my_button()
-        if not self._processing_known_action:
-          await self._async_handle_command(SERVICE_STOP_COVER)
+        await self._async_handle_command(SERVICE_STOP_COVER)
 
     async def set_position(self, position):
         _LOGGER.debug(self._name + ': ' + 'set_position')
