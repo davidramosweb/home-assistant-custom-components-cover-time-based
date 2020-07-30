@@ -5,7 +5,7 @@ With this component you can add a time-based cover. You have to set triggering s
 
 You can adapt it to your requirements, actually any cover system could be used which uses 3 triggers: up, stop, down. The idea is to embed your triggers into scripts which can be hooked into this component via config. For example, you can use RF-bridge or dual-gang switch running Tasmota firmware integrated like in the examples shown below.
 
-The component adds two services ```set_known_position``` and ```set_known_action`` which allow updating HA in response to external stimuli like sensors. 
+The component adds two services ```set_known_position``` and ```set_known_action``` which allow updating HA in response to external stimuli like sensors. 
 
 [Support forum](https://community.home-assistant.io/t/custom-component-cover-time-based/187654/3?u=robi)
 
@@ -116,15 +116,15 @@ Of course you can customize based on what ever other way to trigger these 3 type
 
 This component provides 2 services:
 
-  --  ```cover_rf_time_based.set_known_position``` lets you specify the position of the cover if you have other sources of information, i.e. sensors. It's useful as the cover may have changed position outside of HA's knowledge, and also to allow a confirmed position to make the arrow buttons display more appropriately.
-  --  ```cover_rf_time_based.set_known_action``` is for instances when an action is caught in the real world but not process in HA, .e.g. an RF bridge detects a ```stop``` action that we want to input into HA without calling the stop command.
+1.  ```cover_rf_time_based.set_known_position``` lets you specify the position of the cover if you have other sources of information, i.e. sensors. It's useful as the cover may have changed position outside of HA's knowledge, and also to allow a confirmed position to make the arrow buttons display more appropriately.
+1.  ```cover_rf_time_based.set_known_action``` is for instances when an action is caught in the real world but not process in HA, .e.g. an RF bridge detects a ```stop``` action that we want to input into HA without calling the stop command.
 
 
 #### ```cover_rf_time_based.set_known_position```
 
 In addition to ```entity_id``` and ```position``` takes 2 optional parameters:
-  -- ```confident``` that affects how the cover is presented in HA. Setting confident to ```true``` will mean that certain button operations aren't permitted.
-  -- ```position_type``` allows the setting of either the ```target``` or ```current``` posistion.
+* ```confident``` that affects how the cover is presented in HA. Setting confident to ```true``` will mean that certain button operations aren't permitted.
+* ```position_type``` allows the setting of either the ```target``` or ```current``` posistion.
 
 Following examples to help explain parameters and use cases:
 
