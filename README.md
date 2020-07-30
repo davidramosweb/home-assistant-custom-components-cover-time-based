@@ -112,7 +112,7 @@ The example below assumes you've set `send_stop_at_ends: True` in the cover conf
 Of course you can customize based on what ever other way to trigger these 3 type of movements. You could, for example, turn on and off warning lights along with the movement.
 
 
-### Services to set position or actionwithout triggering cover movement.
+### Services to set position or action without triggering cover movement.
 
 This component provides 2 services:
 
