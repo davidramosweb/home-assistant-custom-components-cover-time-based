@@ -151,7 +151,12 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         if (old_state is not None and self.tc is not None and old_state.attributes.get(ATTR_CURRENT_POSITION) is not None):
             self.tc.set_position(int(old_state.attributes.get(ATTR_CURRENT_POSITION)))
         if (old_state is not None and old_state.attributes.get(ATTR_UNCONFIRMED_STATE) is not None):
-            self._assume_uncertain_position =  old_state.attributes.get(ATTR_UNCONFIRMED_STATE).lower in ["yes", "true", "1"]
+         if type(old_state.attributes.get(ATTR_UNCONFIRMED_STATE)) == bool:
+           self._assume_uncertain_position = old_state.attributes.get(ATTR_UNCONFIRMED_STATE)
+         elif type(old_state.attributes.get(ATTR_UNCONFIRMED_STATE)) is str:
+           self._assume_uncertain_position = old_state.attributes.get(ATTR_UNCONFIRMED_STATE).lower in ["yes", "true", "1"]
+         else:
+           _LOGGER.debug(self._name + ': ' + 'async_added_to_hass :: ATTR_UNCONFIRMED_STATE type %s', str(type(old_state.attributes.get(ATTR_UNCONFIRMED_STATE))))
 
     def _handle_my_button(self):
         """Handle the MY button press"""
@@ -163,7 +168,7 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
     @property
     def unconfirmed_state(self):
         """Return the assume state as a string to persist through restarts ."""
-        return str(self.assumed_state)
+        return str(self._assume_uncertain_position)
 
     @property
     def name(self):
@@ -178,7 +183,7 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
             attr[CONF_TRAVELLING_TIME_DOWN] = self._travel_time_down
         if self._travel_time_up is not None:
             attr[CONF_TRAVELLING_TIME_UP] = self._travel_time_up 
-        attr[ATTR_UNCONFIRMED_STATE] = self._assume_uncertain_position 
+        attr[ATTR_UNCONFIRMED_STATE] = str(self._assume_uncertain_position)
         return attr
 
     @property
