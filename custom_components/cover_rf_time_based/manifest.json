@@ -5,5 +5,5 @@
   "requirements": [
     "xknx==0.9.4"
   ],
-  "codeowners": ["@davidramosweb", "@nagyrobi"]
+  "codeowners": ["@davidramosweb", "@nagyrobi", "@Alfiegerner"]
 }

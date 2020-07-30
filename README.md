@@ -5,6 +5,8 @@ With this component you can add a time-based cover. You have to set triggering s
 
 You can adapt it to your requirements, actually any cover system could be used which uses 3 triggers: up, stop, down. The idea is to embed your triggers into scripts which can be hooked into this component via config. For example, you can use RF-bridge or dual-gang switch running Tasmota firmware integrated like in the examples shown below.
 
+The component adds two services ```set_known_position``` and ```set_known_action`` which allow updating HA in response to external stimuli like sensors. 
+
 [Support forum](https://community.home-assistant.io/t/custom-component-cover-time-based/187654/3?u=robi)
 
 ## Installation
@@ -110,14 +112,19 @@ The example below assumes you've set `send_stop_at_ends: True` in the cover conf
 Of course you can customize based on what ever other way to trigger these 3 type of movements. You could, for example, turn on and off warning lights along with the movement.
 
 
-### Service to set or move to position without triggering cover movement.
+### Services to set position or actionwithout triggering cover movement.
 
-This component provides the ```cover_rf_time_based.set_known_position``` service that lets you specify the position of the cover if you have other sources of information, i.e. sensors. It's useful as the cover may have changed position outside of HA's knowledge, and also to allow a confirmed position to make the arrow buttons display more appropriately.
+This component provides 2 services:
 
-To this end the position in the service has an optional parameter of ```confident``` that affects how the cover is presented in HA. Setting confident to ```true``` will mean that certain button operations aren't permitted.
+  --  ```cover_rf_time_based.set_known_position``` lets you specify the position of the cover if you have other sources of information, i.e. sensors. It's useful as the cover may have changed position outside of HA's knowledge, and also to allow a confirmed position to make the arrow buttons display more appropriately.
+  --  ```cover_rf_time_based.set_known_action``` is for instances when an action is caught in the real world but not process in HA, .e.g. an RF bridge detects a ```stop``` action that we want to input into HA without calling the stop command.
 
-Another optional parameter of ```position_type``` allows the setting of either the ```target``` or ```current``` posistion.
 
+#### ```cover_rf_time_based.set_known_position```
+
+In addition to ```entity_id``` and ```position``` takes 2 optional parameters:
+  -- ```confident``` that affects how the cover is presented in HA. Setting confident to ```true``` will mean that certain button operations aren't permitted.
+  -- ```position_type``` allows the setting of either the ```target``` or ```current``` posistion.
 
 Following examples to help explain parameters and use cases:
 
@@ -169,6 +176,28 @@ We have set ```confident``` to ```true``` as the sensor has confirmed a final po
 ```confident``` is omitted so defaulted to ```false``` as we're not sure where the movement may end, so all arrows are available.
 ```position_type``` is omitted so defaulted to ```target```, meaning cover will transition to ```position``` without triggering any start or stop actions.
 
+#### ```cover_rf_time_based.set_known_position```
+In addtion to ```entity_id``` takes parameter ```action``` that should be one of open,close or stop.
+
+Example:
+
+```yaml
+- id: 'rf_cover_stop'
+  alias: 'RF_Cover: set stop action from bridge trigger'
+  description: ''
+  trigger:
+  - entity_id: sensor.rf_command
+    platform: state
+    to: 'stop'
+  condition:[]
+  action:
+  - data:
+      entity_id: cover.rf_cover
+      action: stop
+    service: cover_rf_time_based.set_known_action
+```
+
+In this instance we have caught a stop signal from the RF bridge and want to update HA cover without triggering another stop action.
 
 ### Icon customization
 For proper icon display (opened/moving/closed) customization can be added to `configuration.yaml` based of what type of covers you have, either one by one, or for all covers at once:
