@@ -1,7 +1,10 @@
 """Cover Time based, RF version."""
 import logging
+
 import voluptuous as vol
+
 from datetime import timedelta
+
 from homeassistant.core import callback
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.event import async_track_utc_time_change, async_track_time_interval
@@ -38,11 +41,13 @@ CONF_CLOSE_SCRIPT_ENTITY_ID = 'close_script_entity_id'
 CONF_STOP_SCRIPT_ENTITY_ID = 'stop_script_entity_id'
 ATTR_CONFIDENT = 'confident'
 ATTR_POSITION = 'position'
+ATTR_ACTION = 'action'
 ATTR_POSITION_TYPE = 'position_type'
 ATTR_POSITION_TYPE_CURRENT = 'current'
 ATTR_POSITION_TYPE_TARGET = 'target'
-ATTR_RESTORE_ASSUMED_STATE = 'restore_assumed_state'
+ATTR_UNCONFIRMED_STATE = 'unconfirmed_state'
 SERVICE_SET_KNOWN_POSITION = 'set_known_position'
+SERVICE_SET_KNOWN_ACTION = 'set_known_action'
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
@@ -72,6 +77,15 @@ POSITION_SCHEMA = vol.Schema(
     }
 )
 
+
+ACTION_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_ids,
+        vol.Required(ATTR_ACTION): cv.string
+    }
+)
+
+
 DOMAIN = "cover_rf_time_based"
 
 def devices_from_config(domain_config):
@@ -89,6 +103,8 @@ def devices_from_config(domain_config):
         devices.append(device)
     return devices
 
+
+
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the cover platform."""
     async_add_entities(devices_from_config(config))
@@ -98,6 +114,11 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     platform.async_register_entity_service(
         SERVICE_SET_KNOWN_POSITION, POSITION_SCHEMA, "set_known_position"
     )
+
+    platform.async_register_entity_service(
+        SERVICE_SET_KNOWN_ACTION, ACTION_SCHEMA, "set_known_action"
+    )
+
 
 class CoverTimeBased(CoverEntity, RestoreEntity):
     def __init__(self, device_id, name, travel_time_down, travel_time_up, open_script_entity_id, close_script_entity_id, stop_script_entity_id, send_stop_at_ends):
@@ -123,14 +144,19 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         self.tc = TravelCalculator(self._travel_time_down, self._travel_time_up)
 
     async def async_added_to_hass(self):
-        """ Only cover's position matters.             """
-        """ The rest is calculated from this attribute."""
+        """ Only cover position and confidence in that matters."""
+        """ The rest is calculated from this attribute.        """
         old_state = await self.async_get_last_state()
         _LOGGER.debug(self._name + ': ' + 'async_added_to_hass :: oldState %s', old_state)
         if (old_state is not None and self.tc is not None and old_state.attributes.get(ATTR_CURRENT_POSITION) is not None):
             self.tc.set_position(int(old_state.attributes.get(ATTR_CURRENT_POSITION)))
-        if (old_state is not None and old_state.attributes.get(ATTR_RESTORE_ASSUMED_STATE) is not None):
-            self._assume_uncertain_position =  old_state.attributes.get(ATTR_RESTORE_ASSUMED_STATE).lower in ["yes", "true", "1"]
+        if (old_state is not None and old_state.attributes.get(ATTR_UNCONFIRMED_STATE) is not None):
+         if type(old_state.attributes.get(ATTR_UNCONFIRMED_STATE)) == bool:
+           self._assume_uncertain_position = old_state.attributes.get(ATTR_UNCONFIRMED_STATE)
+         elif type(old_state.attributes.get(ATTR_UNCONFIRMED_STATE)) is str:
+           self._assume_uncertain_position = old_state.attributes.get(ATTR_UNCONFIRMED_STATE).lower in ["yes", "true", "1"]
+         else:
+           _LOGGER.debug(self._name + ': ' + 'async_added_to_hass :: ATTR_UNCONFIRMED_STATE type %s', str(type(old_state.attributes.get(ATTR_UNCONFIRMED_STATE))))
 
     def _handle_my_button(self):
         """Handle the MY button press"""
@@ -140,9 +166,9 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
             self.stop_auto_updater()
 
     @property
-    def restore_assumed_state(self):
+    def unconfirmed_state(self):
         """Return the assume state as a string to persist through restarts ."""
-        return str(self.assumed_state)
+        return str(self._assume_uncertain_position)
 
     @property
     def name(self):
@@ -156,9 +182,8 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         if self._travel_time_down is not None:
             attr[CONF_TRAVELLING_TIME_DOWN] = self._travel_time_down
         if self._travel_time_up is not None:
-            attr[CONF_TRAVELLING_TIME_UP] = self._travel_time_up
-        attr[ATTR_RESTORE_ASSUMED_STATE] = str(self._assume_uncertain_position)
- 
+            attr[CONF_TRAVELLING_TIME_UP] = self._travel_time_up 
+        attr[ATTR_UNCONFIRMED_STATE] = str(self._assume_uncertain_position)
         return attr
 
     @property
@@ -269,6 +294,22 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
     def position_reached(self):
         """Return if cover has reached its final position."""
         return self.tc.position_reached()
+
+    async def set_known_action(self, **kwargs):
+        """We want to do a few things when we get a position"""
+        action = kwargs[ATTR_ACTION]
+        if action not in ["open","close","stop"]:
+          raise ValueError("action must be one of open, close or cover.")
+        if action == "stop":
+          self._handle_my_button()
+          return
+        if action == "open":
+          self.tc.start_travel_up()
+          self._target_position = 100
+        if action == "close":
+          self.tc.start_travel_down()
+          self._target_position = 0
+        self.start_auto_updater()
 
     async def set_known_position(self, **kwargs):
         """We want to do a few things when we get a position"""

@@ -18,4 +18,13 @@ set_known_position:
     position_type:
       description: optional (default is target) - specifies if the position we are passing in is the target or the current position. Defaults to target meaning we will transition slider from current posution to given target. Specifiying current will set to the current position immediately.
       example: current
+set_known_action:
+  description: Action of open, stop or close captured outside of HA, trigger cover response in HA without triggering action
+  fields:
+    entity_id:
+      description: entity id of cover to set position for
+      example: cover.garage_door
+    action:
+      description: must be one of open, close or stop
+      example: open
 
