@@ -1,4 +1,4 @@
-# Cover Time Based Component RF (trigger script) version
+# Cover Time Based Component trigger script (RF) version
 Cover Time Based Component for your [Home-Assistant](http://www.home-assistant.io) based on [davidramosweb's Cover Time Based Component](https://github.com/davidramosweb/home-assistant-custom-components-cover-time-based), modified for covers triggered by RF commands.
 
 With this component you can add a time-based cover. You have to set triggering scripts to open, close and stop the cover. Position is calculated based on the fraction of time spent by the cover travelling up or down. You can set position from within Home Assistant using service calls. When you use this component, you can forget about the cover's original remote controllers or switches, because there's no feedback from the cover about its real state, state is assumed based on the last command sent from Home Assistant. There's a custom service available where you can update the real state of the cover based on external sensors if you want to.
@@ -111,7 +111,6 @@ The example below assumes you've set `send_stop_at_ends: True` in the cover conf
 (Credits to [VDRainer](https://github.com/VDRainer) for the code. Note how you don't have to configure these as switches in Home Assistant at all, it's enough just to publish MQTT commands strainght from the script.)
 Of course you can customize based on what ever other way to trigger these 3 type of movements. You could, for example, turn on and off warning lights along with the movement.
 
-
 ### Services to set position or action without triggering cover movement.
 
 This component provides 2 services:
@@ -176,8 +175,8 @@ We have set ```confident``` to ```true``` as the sensor has confirmed a final po
 ```confident``` is omitted so defaulted to ```false``` as we're not sure where the movement may end, so all arrows are available.
 ```position_type``` is omitted so defaulted to ```target```, meaning cover will transition to ```position``` without triggering any start or stop actions.
 
-#### ```cover_rf_time_based.set_known_position```
-In addtion to ```entity_id``` takes parameter ```action``` that should be one of open,close or stop.
+#### ```cover_rf_time_based.set_known_action```
+This service mimics cover movement in Home Assistant without actually sending out commands to the cover. It can be used for example when external RF remote controllers act on the cover directly, but the signals can be captured with an RF brigde and Home Assistant can play the movement in parrallel with the real cover. In addtion to ```entity_id``` takes parameter ```action``` that should be one of open, close or stop.
 
 Example:
 
@@ -196,7 +195,6 @@ Example:
       action: stop
     service: cover_rf_time_based.set_known_action
 ```
-
 In this instance we have caught a stop signal from the RF bridge and want to update HA cover without triggering another stop action.
 
 ### Icon customization
@@ -242,4 +240,3 @@ To prevent that, make sure you **don't use** [cover groups](https://www.home-ass
         entity_id: cover.room_4
         position: 30
 ```
-
