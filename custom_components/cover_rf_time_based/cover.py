@@ -153,10 +153,9 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         if (old_state is not None and old_state.attributes.get(ATTR_UNCONFIRMED_STATE) is not None):
          if type(old_state.attributes.get(ATTR_UNCONFIRMED_STATE)) == bool:
            self._assume_uncertain_position = old_state.attributes.get(ATTR_UNCONFIRMED_STATE)
-         elif type(old_state.attributes.get(ATTR_UNCONFIRMED_STATE)) is str:
-           self._assume_uncertain_position = old_state.attributes.get(ATTR_UNCONFIRMED_STATE).lower in ["yes", "true", "1"]
          else:
-           _LOGGER.debug(self._name + ': ' + 'async_added_to_hass :: ATTR_UNCONFIRMED_STATE type %s', str(type(old_state.attributes.get(ATTR_UNCONFIRMED_STATE))))
+           self._assume_uncertain_position = str(old_state.attributes.get(ATTR_UNCONFIRMED_STATE)) == str(True)
+
 
     def _handle_my_button(self):
         """Handle the MY button press"""
