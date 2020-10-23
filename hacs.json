@@ -2,5 +2,6 @@
   "name": "Cover Time Based RF (trigger script)",
   "content_in_root": false,
   "render_readme": false,
-  "domains": ["cover"]
+  "domains": ["cover"],
+  "homeassistant": "0.110.0"
 }
