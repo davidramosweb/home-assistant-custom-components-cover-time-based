@@ -4,7 +4,7 @@ Cover Time Based Component for your Home-Assistant (http://www.home-assistant.io
 With this component you can add a time-based cover. You can set a switch to open and another to close the cover. 
 For example, you can use an Aqara Wall Switch Double Key and standard 4 wire motor roller shutters to do this.
 
-[![Buy me a coffee][buymeacoffee-shield]][buymeacoffee]
+<a href='https://ko-fi.com/A0A12HZT1' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://cdn.ko-fi.com/cdn/kofi4.png?v=2' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 
 ## Installation
 * Copy all files in custom_components/cover_time_based to your <config directory>/custom_components/cover_time_based/ directory.
@@ -29,7 +29,3 @@ cover:
 	   aliases:
 	    - room_rolling_shutter
 ```
-
-
-[buymeacoffee-shield]: https://www.buymeacoffee.com/assets/img/guidelines/download-assets-sm-2.svg
-[buymeacoffee]: https://www.buymeacoffee.com/davidramosweb
