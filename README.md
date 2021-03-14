@@ -45,29 +45,62 @@ Optional settings:
 ### Example scripts.yaml entry
 The following example assumes that you're using an [MQTT-RF bridge running Tasmota](https://tasmota.github.io/docs/devices/Sonoff-RF-Bridge-433/) open source firmware to integrate your radio-controlled covers:
 ```yaml
+'rf_transmitter':
+  alias: 'RF Transmitter'
+  mode: parallel
+  max: 30
+  sequence:
+    - service: mqtt.publish
+      data:
+        topic: 'cmnd/rf-bridge-1/rfraw'
+        payload: '{{ rfraw_data }}'
+
 'rf_myroom_cover_down':
   alias: 'RF send MyRoom Cover DOWN'
+  mode: restart
   sequence:
-  - service: mqtt.publish
-    data:
-      topic: 'cmnd/rf-bridge-1/backlog'
-      payload: 'rfraw XXXXXXXXX....XXXXXXXXXX;rfraw 0'
+    - service: script.turn_on
+      target:
+        entity_id: script.rf_transmitter
+      data:
+        variables:
+          rfraw_data: 'rfraw XXXXXXXXX....XXXXXXXXXX'
 
 'rf_myroom_cover_stop':
   alias: 'RF send MyRoom Cover STOP'
+  mode: restart
   sequence:
-  - service: mqtt.publish
-    data:
-      topic: 'cmnd/rf-bridge-1/backlog'
-      payload: 'rfraw XXXXXXXXX....XXXXXXXXXX;rfraw 0'
+    - service: script.turn_on
+      target:
+        entity_id: script.rf_transmitter
+      data:
+        variables:
+          rfraw_data: 'rfraw XXXXXXXXX....XXXXXXXXXX'
 
  'rf_myroom_cover_up':
   alias: 'RF send MyRoom Cover UP'
+  mode: restart
   sequence:
-  - service: mqtt.publish
-    data:
-      topic: 'cmnd/rf-bridge-1/backlog'
-      payload: 'rfraw XXXXXXXXX....XXXXXXXXXX;rfraw 0'
+    - service: script.turn_on
+      target:
+        entity_id: script.rf_transmitter
+      data:
+        variables:
+          rfraw_data: 'rfraw XXXXXXXXX....XXXXXXXXXX'
+```
+
+For the scripts above you need a small automation in _automations.yaml_ to set `RfRaw` back to `0` in Tasmota to avoid spamming your MQTT server with loads of sniffed raw RF data. This trigger is checked every minute only so set `> 40` set in the `value_template` to be a bit bigger than your biggest `travelling_time`:
+
+```yaml
+- alias: 'RF Transmitter cancel sniffing'
+  trigger:
+    platform: template
+    value_template: "{{ ( as_timestamp(now()) - as_timestamp(state_attr('script.rf_transmitter', 'last_triggered')) | int(0) ) > 40 }}"
+  action:
+    - service: mqtt.publish
+      data:
+        topic: 'cmnd/rf-bridge-1/rfraw'
+        payload: '0'
 ```
 
 The example below assumes you've set `send_stop_at_ends: True` in the cover config, and you're using any [two-gang switch running Tasmota](https://tasmota.github.io/docs/devices/Sonoff-Dual-R2/) open source firmware to integrate your switch-controlled covers:
