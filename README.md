@@ -92,7 +92,8 @@ The following example assumes that you're using an [MQTT-RF bridge running Tasmo
 For the scripts above you need a small automation in _automations.yaml_ to set `RfRaw` back to `0` in Tasmota to avoid spamming your MQTT server with loads of sniffed raw RF data. This trigger is checked every minute only so set `> 40` set in the `value_template` to be a bit bigger than your biggest `travelling_time`:
 
 ```yaml
-- alias: 'RF Transmitter cancel sniffing'
+- id: rf_transmitter_cancel_sniff
+  alias: 'RF Transmitter cancel sniffing'
   trigger:
     platform: template
     value_template: "{{ ( as_timestamp(now()) - as_timestamp(state_attr('script.rf_transmitter', 'last_triggered')) | int(0) ) > 40 }}"
