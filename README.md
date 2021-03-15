@@ -147,7 +147,7 @@ The example below assumes you've set `send_stop_at_ends: True` in the cover conf
 Note how you don't have to configure these as switches in Home Assistant at all, it's enough just to publish MQTT commands strainght from the script (credits to [VDRainer](https://github.com/VDRainer) for this example).
 Of course you can customize based on what ever other way to trigger these 3 type of movements. You could, for example, turn on and off warning lights along with the movement.
 
-### Services to set position or action without triggering cover movement.
+### Services to set position or action without triggering cover movement
 
 This component provides 2 services:
 
