@@ -43,6 +43,7 @@ Optional settings:
 
 
 ### Example scripts.yaml entry
+#### RF covers
 The following example assumes that you're using an [MQTT-RF bridge running Tasmota](https://tasmota.github.io/docs/devices/Sonoff-RF-Bridge-433/) open source firmware to integrate your radio-controlled covers:
 ```yaml
 'rf_transmitter':
@@ -104,7 +105,7 @@ For the scripts above you need a small automation in _automations.yaml_ to set `
         topic: 'cmnd/rf-bridge-1/rfraw'
         payload: '0'
 ```
-
+#### Switched covers
 The example below assumes you've set `send_stop_at_ends: True` in the cover config, and you're using any [two-gang switch running Tasmota](https://tasmota.github.io/docs/devices/Sonoff-Dual-R2/) open source firmware to integrate your switch-controlled covers:
 ```yaml
 'rf_myroom_cover_down':
@@ -143,7 +144,7 @@ The example below assumes you've set `send_stop_at_ends: True` in the cover conf
         topic: 'cmnd/myroomcoverswitch/POWER2' # power
         payload: 'ON'
 ```
-(Credits to [VDRainer](https://github.com/VDRainer) for the code. Note how you don't have to configure these as switches in Home Assistant at all, it's enough just to publish MQTT commands strainght from the script.)
+Note how you don't have to configure these as switches in Home Assistant at all, it's enough just to publish MQTT commands strainght from the script (credits to [VDRainer](https://github.com/VDRainer) for this example).
 Of course you can customize based on what ever other way to trigger these 3 type of movements. You could, for example, turn on and off warning lights along with the movement.
 
 ### Services to set position or action without triggering cover movement.
