@@ -47,13 +47,14 @@ The following example assumes that you're using an [MQTT-RF bridge running Tasmo
 ```yaml
 'rf_transmitter':
   alias: 'RF Transmitter'
-  mode: parallel
+  mode: queued
   max: 30
   sequence:
     - service: mqtt.publish
       data:
         topic: 'cmnd/rf-bridge-1/rfraw'
         payload: '{{ rfraw_data }}'
+    - delay: 00:00:01
 
 'rf_myroom_cover_down':
   alias: 'RF send MyRoom Cover DOWN'
@@ -253,7 +254,7 @@ Tasmota RF bridge is able to send out the radio-frequency commands very quickly.
 This can be handled in multiple ways:
 - avoid _backlogs_ with `rfraw AAB0XXXXX....XXXXXXXXXX; rfraw 0` as switching the sniff on and off quickly for every cover movement may cause issues. It's enough to send `rfraw 0` only once with some delay after all procedures related to cover movements finished.
 - if you are sending `0xB0` codes (decoded with [BitBucketConverter.py](https://github.com/Portisch/RF-Bridge-EFM8BB1)) you can tweak those to be sent with repetitions (multiple times) by changing the repetition parameter (5th byte) of the code. [For example](https://github.com/arendst/Tasmota/issues/5936#issuecomment-500236581) 20 repetitions can be achieved by changing 5th byte from 04 to 14. Also BitBucketConverter can be run by specifiying the required repetitions at command line before decoding.
-- alternatively, you can further reduce stress by making sure you don't use [cover groups](https://www.home-assistant.io/integrations/cover.group/) containing multiple covers provided by this integration, and also in automation don't include multipe covers separated by commas in one service call. You could create separate service calls for each cover, moreover, add 1 second delay between them:
+- alternatively, you can further reduce stress by making sure you don't use [cover groups](https://www.home-assistant.io/integrations/cover.group/) containing multiple covers provided by this integration, and also in automation don't include multipe covers separated by commas in one service call. You could create separate service calls for each cover, moreover, add more delay between them:
 ```yaml
 - alias: 'Covers down when getting dark'
   trigger:
