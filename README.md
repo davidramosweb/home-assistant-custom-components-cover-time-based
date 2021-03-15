@@ -91,7 +91,7 @@ The following example assumes that you're using an [MQTT-RF bridge running Tasmo
           rfraw_data: 'AAB0XXXXX....XXXXXXXXXX'
 ```
 
-For the scripts above you need a small automation in _automations.yaml_ to set `RfRaw` back to `0` in Tasmota to avoid spamming your MQTT server with loads of sniffed raw RF data. This trigger is checked every minute only so set `> 40` set in the `value_template` to be a bit bigger than your biggest `travelling_time`:
+For the scripts above you need a small automation in **automations.yaml** to set `RfRaw` back to `0` in Tasmota to avoid spamming your MQTT server with loads of sniffed raw RF data. This trigger is checked every minute only so set `> 40` set in the `value_template` to be a bit bigger than your biggest `travelling_time`:
 
 ```yaml
 - id: rf_transmitter_cancel_sniff
@@ -253,7 +253,7 @@ Since there's no feedback from the cover about its current state, state is assum
 Tasmota RF bridge is able to send out the radio-frequency commands very quickly. If some of your covers 'miss' the commands occassionally (you can see that from the fact that the state shown in Home Assistant does not correspond to reality), it may be that those cover motors do not understand the codes when they are sent 'at once' from Home Assistant. 
 
 This can be handled in multiple ways:
-- avoid _backlogs_ with `rfraw AAB0XXXXX....XXXXXXXXXX; rfraw 0` as switching the sniff on and off quickly for every cover movement may cause issues. It's enough to send `rfraw 0` only once with some delay after all procedures related to cover movements finished.
+- avoid _backlogs_ with `rfraw AAB0XXXXX....XXXXXXXXXX; rfraw 0` if you need multiple covers opening and closing at once. Switching the sniff on and off quickly for every cover movement may cause issues. It's enough to send `rfraw 0` only once with some delay after all procedures related to cover movements finished, the example scripts above take care of that.
 - if you are sending `0xB0` codes (decoded with [BitBucketConverter.py](https://github.com/Portisch/RF-Bridge-EFM8BB1)) you can tweak those to be sent with repetitions (multiple times) by changing the repetition parameter (5th byte) of the code. [For example](https://github.com/arendst/Tasmota/issues/5936#issuecomment-500236581) 20 repetitions can be achieved by changing 5th byte from 04 to 14. Also BitBucketConverter can be run by specifiying the required repetitions at command line before decoding.
 - alternatively, you can further reduce stress by making sure you don't use [cover groups](https://www.home-assistant.io/integrations/cover.group/) containing multiple covers provided by this integration, and also in automation don't include multipe covers separated by commas in one service call. You could create separate service calls for each cover, moreover, add more delay between them:
 ```yaml
@@ -266,10 +266,10 @@ This can be handled in multiple ways:
   action:
     - service: cover.close_cover
       entity_id: cover.room_1
-    - delay: '00:00:01'
+    - delay: '00:{{ (range(1,10)|random|int) }}:00'
     - service: cover.close_cover
       entity_id: cover.room_2
-    - delay: '00:00:01'
+    - delay: '00:00:02'
     - service: cover.set_cover_position
       data:
         entity_id: cover.room_3
