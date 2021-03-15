@@ -9,6 +9,7 @@ With this component you can add a time-based cover. You have to set triggering s
 - Usable with covers which support only triggering, and give no feedback about their state (position is assumed based on commands sent from HA)
 - State can be updated based on independent, external sensors (for example a contact or reed sensor at closed or opened state)
 - State can mimic the operation based on external sensors (for example by monitoring the air for closing or opening RF codes) so usage in parrallel with controllers outside HA is possible
+- Ability to take care care of queuing the transmission of the codes and keeping an appropriate delay between them to minimize 'missed' commands
 
 ## Component authors & contributors
     "@davidramosweb",
