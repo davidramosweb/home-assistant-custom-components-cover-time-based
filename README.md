@@ -59,7 +59,8 @@ The following example assumes that you're using an [MQTT-RF bridge running Tasmo
 
 'rf_myroom_cover_down':
   alias: 'RF send MyRoom Cover DOWN'
-  mode: restart
+  mode: single
+  max_exceeded: silent
   sequence:
     - service: script.turn_on
       target:
@@ -70,7 +71,8 @@ The following example assumes that you're using an [MQTT-RF bridge running Tasmo
 
 'rf_myroom_cover_stop':
   alias: 'RF send MyRoom Cover STOP'
-  mode: restart
+  mode: single
+  max_exceeded: silent
   sequence:
     - service: script.turn_on
       target:
@@ -81,7 +83,8 @@ The following example assumes that you're using an [MQTT-RF bridge running Tasmo
 
  'rf_myroom_cover_up':
   alias: 'RF send MyRoom Cover UP'
-  mode: restart
+  mode: single
+  max_exceeded: silent
   sequence:
     - service: script.turn_on
       target:
@@ -110,6 +113,8 @@ The example below assumes you've set `send_stop_at_ends: True` in the cover conf
 ```yaml
 'rf_myroom_cover_down':
   alias: 'Switches send MyRoom Cover DOWN'
+  mode: single
+  max_exceeded: silent
   sequence:
     - service: mqtt.publish
       data:
@@ -122,6 +127,8 @@ The example below assumes you've set `send_stop_at_ends: True` in the cover conf
 
 'rf_myroom_cover_stop':
   alias: 'Switches send MyRoom Cover STOP'
+  mode: single
+  max_exceeded: silent
   sequence:
     - service: mqtt.publish
       data:
@@ -134,6 +141,8 @@ The example below assumes you've set `send_stop_at_ends: True` in the cover conf
 
 'rf_myroom_cover_up':
   alias: 'Switches send MyRoom Cover UP'
+  mode: single
+  max_exceeded: silent
   sequence:
     - service: mqtt.publish
       data:
@@ -168,7 +177,6 @@ Following examples to help explain parameters and use cases:
 ```yaml
 - id: 'garage_closed'
   alias: 'Doors: garage set closed when contact'
-  description: ''
   trigger:
   - entity_id: binary_sensor.door_garage_cover
     platform: state
@@ -192,7 +200,6 @@ We have set ```confident``` to ```true``` as the sensor has confirmed a final po
 ```yaml
 - id: 'rf_cover_opening'
   alias: 'RF_Cover: set opening when rf received'
-  description: ''
   trigger:
   - entity_id: sensor.rf_command
     platform: state
@@ -219,7 +226,6 @@ Example:
 ```yaml
 - id: 'rf_cover_stop'
   alias: 'RF_Cover: set stop action from bridge trigger'
-  description: ''
   trigger:
   - entity_id: sensor.rf_command
     platform: state
@@ -258,6 +264,8 @@ This can be handled in multiple ways:
 - alternatively, you can further reduce stress by making sure you don't use [cover groups](https://www.home-assistant.io/integrations/cover.group/) containing multiple covers provided by this integration, and also in automation don't include multipe covers separated by commas in one service call. You could create separate service calls for each cover, moreover, add more delay between them:
 ```yaml
 - alias: 'Covers down when getting dark'
+  mode: single
+  max_exceeded: silent
   trigger:
     - platform: numeric_state
       below: 400
