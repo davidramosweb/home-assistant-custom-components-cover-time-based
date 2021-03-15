@@ -44,7 +44,7 @@ Optional settings:
 
 ### Example scripts.yaml entry
 #### RF covers
-The following example assumes that you're using an [MQTT-RF bridge running Tasmota](https://tasmota.github.io/docs/devices/Sonoff-RF-Bridge-433/) open source firmware to integrate your radio-controlled covers:
+The following example assumes that you're using an [MQTT-RF bridge running Tasmota](https://tasmota.github.io/docs/devices/Sonoff-RF-Bridge-433/) open source firmware to integrate your radio-controlled covers. The command scripts pass the `rfraw_data` parameter to a general transmitter script which takes care of queuing the transmission of the codes and keeping an appropriate delay between them:
 ```yaml
 'rf_transmitter':
   alias: 'RF Transmitter'
