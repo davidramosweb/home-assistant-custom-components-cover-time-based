@@ -133,6 +133,7 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         self._assume_uncertain_position = True 
         self._target_position = 0
         self._processing_known_position = False
+        self._unique_id = device_id
 
         if name:
             self._name = name
@@ -173,6 +174,11 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
     def name(self):
         """Return the name of the cover."""
         return self._name
+
+    @property
+    def unique_id(self):
+        """Return the unique id."""
+        return "cover_rf_timebased_uuid_" + self._unique_id
 
     @property
     def device_state_attributes(self):
@@ -370,6 +376,8 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
             await self.hass.services.async_call("homeassistant", "turn_on", {"entity_id": self._stop_script_entity_id}, False)
 
         _LOGGER.debug(self._name + ': ' + '_async_handle_command :: %s', cmd)
-        
+
         # Update state of entity
         self.async_write_ha_state()
+
+# END
