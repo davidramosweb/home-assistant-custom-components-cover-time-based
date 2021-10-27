@@ -32,8 +32,10 @@ CONF_ALIASES = 'aliases'
 CONF_TRAVELLING_TIME_DOWN = 'travelling_time_down'
 CONF_TRAVELLING_TIME_UP = 'travelling_time_up'
 CONF_SEND_STOP_AT_ENDS = 'send_stop_at_ends'
+CONF_ALWAYS_CONFIDENT = 'always_confident'
 DEFAULT_TRAVEL_TIME = 25
 DEFAULT_SEND_STOP_AT_ENDS = False
+DEFAULT_ALWAYS_CONFIDENT = False
 
 CONF_OPEN_SCRIPT_ENTITY_ID = 'open_script_entity_id'
 CONF_CLOSE_SCRIPT_ENTITY_ID = 'close_script_entity_id'
@@ -55,6 +57,7 @@ BASE_DEVICE_SCHEMA = vol.Schema(
         vol.Optional(CONF_TRAVELLING_TIME_DOWN, default=DEFAULT_TRAVEL_TIME): cv.positive_int,
         vol.Optional(CONF_TRAVELLING_TIME_UP, default=DEFAULT_TRAVEL_TIME): cv.positive_int,
         vol.Optional(CONF_SEND_STOP_AT_ENDS, default=DEFAULT_SEND_STOP_AT_ENDS): cv.boolean,
+        vol.Optional(CONF_ALWAYS_CONFIDENT, default=DEFAULT_ALWAYS_CONFIDENT): cv.boolean,
     }
 )
 
@@ -115,7 +118,8 @@ def devices_from_config(domain_config):
         stop_script_entity_id = config.pop(CONF_STOP_SCRIPT_ENTITY_ID, None)
         cover_entity_id = config.pop(CONF_COVER_ENTITY_ID, None)
         send_stop_at_ends = config.pop(CONF_SEND_STOP_AT_ENDS)
-        device = CoverTimeBased(device_id, name, travel_time_down, travel_time_up, open_script_entity_id, close_script_entity_id, stop_script_entity_id, cover_entity_id, send_stop_at_ends)
+        always_confident = config.pop(CONF_ALWAYS_CONFIDENT)
+        device = CoverTimeBased(device_id, name, travel_time_down, travel_time_up, open_script_entity_id, close_script_entity_id, stop_script_entity_id, cover_entity_id, send_stop_at_ends, always_confident)
         devices.append(device)
     return devices
 
@@ -136,7 +140,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class CoverTimeBased(CoverEntity, RestoreEntity):
-    def __init__(self, device_id, name, travel_time_down, travel_time_up, open_script_entity_id, close_script_entity_id, stop_script_entity_id, cover_entity_id, send_stop_at_ends):
+    def __init__(self, device_id, name, travel_time_down, travel_time_up, open_script_entity_id, close_script_entity_id, stop_script_entity_id, cover_entity_id, send_stop_at_ends, always_confident):
         """Initialize the cover."""
         from xknx.devices import TravelCalculator
         self._travel_time_down = travel_time_down
@@ -146,7 +150,8 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         self._stop_script_entity_id = stop_script_entity_id
         self._cover_entity_id = cover_entity_id
         self._send_stop_at_ends = send_stop_at_ends
-        self._assume_uncertain_position = True 
+        self._always_confident = always_confident
+        self._assume_uncertain_position = not self._always_confident
         self._target_position = 0
         self._processing_known_position = False
         self._unique_id = device_id
@@ -167,7 +172,7 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         _LOGGER.debug(self._name + ': ' + 'async_added_to_hass :: oldState %s', old_state)
         if (old_state is not None and self.tc is not None and old_state.attributes.get(ATTR_CURRENT_POSITION) is not None):
             self.tc.set_position(int(old_state.attributes.get(ATTR_CURRENT_POSITION)))
-        if (old_state is not None and old_state.attributes.get(ATTR_UNCONFIRMED_STATE) is not None):
+        if (old_state is not None and old_state.attributes.get(ATTR_UNCONFIRMED_STATE) is not None and not self._always_confident):
          if type(old_state.attributes.get(ATTR_UNCONFIRMED_STATE)) == bool:
            self._assume_uncertain_position = old_state.attributes.get(ATTR_UNCONFIRMED_STATE)
          else:
@@ -340,7 +345,7 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         if position_type not in [ATTR_POSITION_TYPE_TARGET, ATTR_POSITION_TYPE_CURRENT]:
           raise ValueError(ATTR_POSITION_TYPE + " must be one of %s, %s", ATTR_POSITION_TYPE_TARGET,ATTR_POSITION_TYPE_CURRENT)
         _LOGGER.debug(self._name + ': ' + 'set_known_position :: position  %d, confident %s, position_type %s, self.tc.is_traveling%s', position, str(confident), position_type, str(self.tc.is_traveling()))
-        self._assume_uncertain_position = not confident 
+        self._assume_uncertain_position = not confident if not self._always_confident else False
         self._processing_known_position = True
         if position_type == ATTR_POSITION_TYPE_TARGET:
           self._target_position = position
@@ -374,7 +379,7 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
 
     async def _async_handle_command(self, command, *args):
         """We have cover.* triggered command. Reset assumed state and known_position processsing and execute"""
-        self._assume_uncertain_position = True
+        self._assume_uncertain_position = not self._always_confident
         self._processing_known_position = False
         cmd = "UNKNOWN"
         if command == "close_cover":
