@@ -7,7 +7,7 @@ from datetime import timedelta
 
 from homeassistant.core import callback
 from homeassistant.helpers import entity_platform
-from homeassistant.helpers.event import async_track_utc_time_change, async_track_time_interval
+from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.components.cover import (
     ATTR_CURRENT_POSITION,
     ATTR_POSITION,
@@ -28,7 +28,6 @@ from homeassistant.helpers.restore_state import RestoreEntity
 _LOGGER = logging.getLogger(__name__)
 
 CONF_DEVICES = 'devices'
-CONF_NAME = 'name'
 CONF_ALIASES = 'aliases'
 CONF_TRAVELLING_TIME_DOWN = 'travelling_time_down'
 CONF_TRAVELLING_TIME_UP = 'travelling_time_up'
@@ -41,7 +40,6 @@ CONF_CLOSE_SCRIPT_ENTITY_ID = 'close_script_entity_id'
 CONF_STOP_SCRIPT_ENTITY_ID = 'stop_script_entity_id'
 CONF_COVER_ENTITY_ID = 'cover_entity_id'
 ATTR_CONFIDENT = 'confident'
-ATTR_POSITION = 'position'
 ATTR_ACTION = 'action'
 ATTR_POSITION_TYPE = 'position_type'
 ATTR_POSITION_TYPE_CURRENT = 'current'
@@ -104,6 +102,7 @@ ACTION_SCHEMA = vol.Schema(
 
 DOMAIN = "cover_rf_time_based"
 
+
 def devices_from_config(domain_config):
     """Parse configuration and add cover devices."""
     devices = []
@@ -119,7 +118,6 @@ def devices_from_config(domain_config):
         device = CoverTimeBased(device_id, name, travel_time_down, travel_time_up, open_script_entity_id, close_script_entity_id, stop_script_entity_id, cover_entity_id, send_stop_at_ends)
         devices.append(device)
     return devices
-
 
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
@@ -176,10 +174,10 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
            self._assume_uncertain_position = str(old_state.attributes.get(ATTR_UNCONFIRMED_STATE)) == str(True)
 
 
-    def _handle_my_button(self):
-        """Handle the MY button press"""
+    def _handle_stop(self):
+        """Handle stop button press"""
         if self.tc.is_traveling():
-            _LOGGER.debug(self._name + ': ' + '_handle_my_button :: button stops cover')
+            _LOGGER.debug(self._name + ': ' + '_handle_stop :: button stops cover')
             self.tc.stop()
             self.stop_auto_updater()
 
@@ -266,7 +264,7 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
     async def async_stop_cover(self, **kwargs):
         """Turn the device stop."""
         _LOGGER.debug(self._name + ': ' + 'async_stop_cover')
-        self._handle_my_button()
+        self._handle_stop()
         await self._async_handle_command(SERVICE_STOP_COVER)
 
     async def set_position(self, position):
@@ -324,7 +322,7 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         if action not in ["open","close","stop"]:
           raise ValueError("action must be one of open, close or cover.")
         if action == "stop":
-          self._handle_my_button()
+          self._handle_stop()
           return
         if action == "open":
           self.tc.start_travel_up()
@@ -378,6 +376,7 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         """We have cover.* triggered command. Reset assumed state and known_position processsing and execute"""
         self._assume_uncertain_position = True
         self._processing_known_position = False
+        cmd = "UNKNOWN"
         if command == "close_cover":
             cmd = "DOWN"
             self._state = False
