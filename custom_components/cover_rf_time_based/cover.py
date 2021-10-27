@@ -39,6 +39,7 @@ DEFAULT_SEND_STOP_AT_ENDS = False
 CONF_OPEN_SCRIPT_ENTITY_ID = 'open_script_entity_id'
 CONF_CLOSE_SCRIPT_ENTITY_ID = 'close_script_entity_id'
 CONF_STOP_SCRIPT_ENTITY_ID = 'stop_script_entity_id'
+CONF_COVER_ENTITY_ID = 'cover_entity_id'
 ATTR_CONFIDENT = 'confident'
 ATTR_POSITION = 'position'
 ATTR_ACTION = 'action'
@@ -49,20 +50,35 @@ ATTR_UNCONFIRMED_STATE = 'unconfirmed_state'
 SERVICE_SET_KNOWN_POSITION = 'set_known_position'
 SERVICE_SET_KNOWN_ACTION = 'set_known_action'
 
+BASE_DEVICE_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_NAME): cv.string,
+        vol.Optional(CONF_ALIASES, default=[]): vol.All(cv.ensure_list, [cv.string]),
+        vol.Optional(CONF_TRAVELLING_TIME_DOWN, default=DEFAULT_TRAVEL_TIME): cv.positive_int,
+        vol.Optional(CONF_TRAVELLING_TIME_UP, default=DEFAULT_TRAVEL_TIME): cv.positive_int,
+        vol.Optional(CONF_SEND_STOP_AT_ENDS, default=DEFAULT_SEND_STOP_AT_ENDS): cv.boolean,
+    }
+)
+
+SCRIPT_DEVICE_SCHEMA = BASE_DEVICE_SCHEMA.extend(
+    {
+        vol.Required(CONF_OPEN_SCRIPT_ENTITY_ID): cv.entity_id,
+        vol.Required(CONF_CLOSE_SCRIPT_ENTITY_ID): cv.entity_id,
+        vol.Required(CONF_STOP_SCRIPT_ENTITY_ID): cv.entity_id,
+    }
+)
+
+COVER_DEVICE_SCHEMA = BASE_DEVICE_SCHEMA.extend(
+    {
+        vol.Required(CONF_COVER_ENTITY_ID): cv.entity_id,
+    }
+)
+
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Optional(CONF_DEVICES, default={}): vol.Schema(
             {
-                cv.string: {
-                    vol.Required(CONF_NAME): cv.string,
-                    vol.Required(CONF_OPEN_SCRIPT_ENTITY_ID): cv.entity_id,
-                    vol.Required(CONF_CLOSE_SCRIPT_ENTITY_ID): cv.entity_id,
-                    vol.Required(CONF_STOP_SCRIPT_ENTITY_ID): cv.entity_id,
-                    vol.Optional(CONF_ALIASES, default=[]): vol.All(cv.ensure_list, [cv.string]),
-                    vol.Optional(CONF_TRAVELLING_TIME_DOWN, default=DEFAULT_TRAVEL_TIME): cv.positive_int,
-                    vol.Optional(CONF_TRAVELLING_TIME_UP, default=DEFAULT_TRAVEL_TIME): cv.positive_int,
-                    vol.Optional(CONF_SEND_STOP_AT_ENDS, default=DEFAULT_SEND_STOP_AT_ENDS): cv.boolean,
-                }
+                cv.string: vol.Any(SCRIPT_DEVICE_SCHEMA, COVER_DEVICE_SCHEMA)
             }
         ),
     }
@@ -98,8 +114,9 @@ def devices_from_config(domain_config):
         open_script_entity_id = config.pop(CONF_OPEN_SCRIPT_ENTITY_ID)
         close_script_entity_id = config.pop(CONF_CLOSE_SCRIPT_ENTITY_ID)
         stop_script_entity_id = config.pop(CONF_STOP_SCRIPT_ENTITY_ID)
+        cover_entity_id = config.pop(CONF_COVER_ENTITY_ID)
         send_stop_at_ends = config.pop(CONF_SEND_STOP_AT_ENDS)
-        device = CoverTimeBased(device_id, name, travel_time_down, travel_time_up, open_script_entity_id, close_script_entity_id, stop_script_entity_id, send_stop_at_ends)
+        device = CoverTimeBased(device_id, name, travel_time_down, travel_time_up, open_script_entity_id, close_script_entity_id, stop_script_entity_id, cover_entity_id, send_stop_at_ends)
         devices.append(device)
     return devices
 
@@ -121,7 +138,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class CoverTimeBased(CoverEntity, RestoreEntity):
-    def __init__(self, device_id, name, travel_time_down, travel_time_up, open_script_entity_id, close_script_entity_id, stop_script_entity_id, send_stop_at_ends):
+    def __init__(self, device_id, name, travel_time_down, travel_time_up, open_script_entity_id, close_script_entity_id, stop_script_entity_id, cover_entity_id, send_stop_at_ends):
         """Initialize the cover."""
         from xknx.devices import TravelCalculator
         self._travel_time_down = travel_time_down
@@ -129,6 +146,7 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         self._open_script_entity_id = open_script_entity_id
         self._close_script_entity_id = close_script_entity_id 
         self._stop_script_entity_id = stop_script_entity_id
+        self._cover_entity_id = cover_entity_id
         self._send_stop_at_ends = send_stop_at_ends
         self._assume_uncertain_position = True 
         self._target_position = 0
@@ -363,17 +381,26 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         if command == "close_cover":
             cmd = "DOWN"
             self._state = False
-            await self.hass.services.async_call("homeassistant", "turn_on", {"entity_id": self._close_script_entity_id}, False)
+            if self._cover_entity_id is not None:
+                await self.hass.services.async_call("cover", "close_cover", {"entity_id": self._cover_entity_id}, False)
+            else:
+                await self.hass.services.async_call("homeassistant", "turn_on", {"entity_id": self._close_script_entity_id}, False)
 
         elif command == "open_cover":
             cmd = "UP"
             self._state = True
-            await self.hass.services.async_call("homeassistant", "turn_on", {"entity_id": self._open_script_entity_id}, False)
+            if self._cover_entity_id is not None:
+                await self.hass.services.async_call("cover", "open_cover", {"entity_id": self._cover_entity_id}, False)
+            else:
+                await self.hass.services.async_call("homeassistant", "turn_on", {"entity_id": self._open_script_entity_id}, False)
 
         elif command == "stop_cover":
             cmd = "STOP"
             self._state = True
-            await self.hass.services.async_call("homeassistant", "turn_on", {"entity_id": self._stop_script_entity_id}, False)
+            if self._cover_entity_id is not None:
+                await self.hass.services.async_call("cover", "stop_cover", {"entity_id": self._cover_entity_id}, False)
+            else:
+                await self.hass.services.async_call("homeassistant", "turn_on", {"entity_id": self._stop_script_entity_id}, False)
 
         _LOGGER.debug(self._name + ': ' + '_async_handle_command :: %s', cmd)
 
