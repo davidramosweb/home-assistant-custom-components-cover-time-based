@@ -1,7 +1,7 @@
 # Cover Time Based Component trigger script (RF) version
-Cover Time Based Component for your [Home-Assistant](http://www.home-assistant.io) based on [davidramosweb's Cover Time Based Component](https://github.com/davidramosweb/home-assistant-custom-components-cover-time-based), modified for covers triggered by RF commands, or any other unidirectional methods.
+Cover Time Based Component for your [Home-Assistant](http://www.home-assistant.io) based on [davidramosweb's Cover Time Based Component](https://github.com/davidramosweb/home-assistant-custom-components-cover-time-based), modified for native cover entities, covers triggered by RF commands, or any other unidirectional methods.
 
-With this component you can add a time-based cover. You have to set triggering scripts to open, close and stop the cover. Position is calculated based on the fraction of time spent by the cover travelling up or down. You can set position from within Home Assistant using service calls. When you use this component, you can forget about the cover's original remote controllers or switches, because there's no feedback from the cover about its real state, state is assumed based on the last command sent from Home Assistant. There's a custom service available where you can update the real state of the cover based on external sensors if you want to.
+With this component you can add a time-based cover. You have to set triggering scripts to open, close and stop the cover (or provide a cover entity). Position is calculated based on the fraction of time spent by the cover travelling up or down. You can set position from within Home Assistant using service calls. When you use this component, you can forget about the cover's original remote controllers or switches, because there's no feedback from the cover about its real state, state is assumed based on the last command sent from Home Assistant. There's a custom service available where you can update the real state of the cover based on external sensors if you want to.
 
 You can adapt it to your requirements, actually any cover system could be used which uses 3 triggers: up, stop, down. The idea is to embed your triggers into scripts which can be hooked into this component via config. For example, you can use RF-bridge or dual-gang switch running Tasmota firmware integrated like in the examples shown below.
 
@@ -32,6 +32,19 @@ cover:
         close_script_entity_id: script.rf_myroom_cover_down
         stop_script_entity_id: script.rf_myroom_cover_stop
         open_script_entity_id: script.rf_myroom_cover_up
+        send_stop_at_ends: False #optional
+        aliases: #optional
+          - my_room_cover_time_based
+```
+```yaml
+cover:
+  - platform: cover_rf_time_based
+    devices:
+      my_room_cover_time_based:
+        name: My Room Cover
+        travelling_time_up: 36
+        travelling_time_down: 34
+        cover_entity_id: cover.myroom
         send_stop_at_ends: False #optional
         aliases: #optional
           - my_room_cover_time_based
