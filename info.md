@@ -4,16 +4,17 @@ With this component you can add a time-based cover. You have to set triggering s
 
 [Configuration details and documentation](https://github.com/nagyrobi/home-assistant-custom-components-cover-rf-time-based)
 
-
 ## Supported features:
 - Usable with covers which support only triggering, and give no feedback about their state (position is assumed based on commands sent from HA)
 - State can be updated based on independent, external sensors (for example a contact or reed sensor at closed or opened state)
 - State can mimic the operation based on external sensors (for example by monitoring the air for closing or opening RF codes) so usage in parrallel with controllers outside HA is possible
 - Ability to take care care of queuing the transmission of the codes and keeping an appropriate delay between them to minimize 'missed' commands
+- Can be used on top of any existing cover integration, or directly with Tasmota or ESPHome firmwares running on various ESP-based modules.
 
 ## Component authors & contributors
     "@davidramosweb",
     "@nagyrobi",
-    "@Alfiegerner"
+    "@Alfiegerner",
+    "@regevbr"
 
 [Support forum](https://community.home-assistant.io/t/custom-component-cover-time-based/187654/3)
