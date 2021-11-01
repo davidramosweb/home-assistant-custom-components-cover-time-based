@@ -323,7 +323,7 @@ This can be handled in multiple ways:
 
 #### Implementation with ESPHome
   
-Use the following configuration for ESPHome on Sonoff RF Bridge:
+Use the following configuration for [ESPHome on Sonoff RF Bridge](https://esphome.io/components/rf_bridge.html):
   
 ```yaml
 substitutions:
