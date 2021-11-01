@@ -122,6 +122,8 @@ The following example assumes that you're using an RF bridge running [Tasmota](h
           rfraw_data: 'AAB0XXXXX....XXXXXXXXXX'
 ```
 
+Note that for RAW data you also need the [Portisch firmware](https://github.com/Portisch/RF-Bridge-EFM8BB1/wiki) to be flashed on the EFM8BB1 embedded RF-transmitter chip of the bridge unit.
+  
 For the scripts above with Tasmota you need a small automation in **automations.yaml** to set `RfRaw` back to `0` to avoid spamming your MQTT server with loads of sniffed raw RF data. This trigger is checked every minute only so set `> 40` set in the `value_template` to be a bit bigger than your biggest `travelling_time`:
 
 ```yaml
