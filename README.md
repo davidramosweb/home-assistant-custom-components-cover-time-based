@@ -288,6 +288,8 @@ homeassistant:
 ```
   
 More details in [Home Assistant device class docs](https://www.home-assistant.io/docs/configuration/customizing-devices/#device-class).
+  
+The default device class for entities implemented by this component is `shutter`.
 
 ### Some tips 
 
