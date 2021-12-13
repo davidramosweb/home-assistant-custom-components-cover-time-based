@@ -12,11 +12,14 @@ from homeassistant.components.cover import (
     ATTR_CURRENT_POSITION,
     ATTR_POSITION,
     PLATFORM_SCHEMA,
+    DEVICE_CLASSES_SCHEMA,
     CoverEntity,
 )
 from homeassistant.const import (
     CONF_NAME,
+    CONF_DEVICE_CLASS,
     ATTR_ENTITY_ID,
+    ATTR_DEVICE_CLASS,
     SERVICE_CLOSE_COVER,
     SERVICE_OPEN_COVER,
     SERVICE_STOP_COVER,
@@ -36,6 +39,7 @@ CONF_ALWAYS_CONFIDENT = 'always_confident'
 DEFAULT_TRAVEL_TIME = 25
 DEFAULT_SEND_STOP_AT_ENDS = False
 DEFAULT_ALWAYS_CONFIDENT = False
+DEFAULT_DEVICE_CLASS = 'shutter'
 
 CONF_OPEN_SCRIPT_ENTITY_ID = 'open_script_entity_id'
 CONF_CLOSE_SCRIPT_ENTITY_ID = 'close_script_entity_id'
@@ -58,6 +62,7 @@ BASE_DEVICE_SCHEMA = vol.Schema(
         vol.Optional(CONF_TRAVELLING_TIME_UP, default=DEFAULT_TRAVEL_TIME): cv.positive_int,
         vol.Optional(CONF_SEND_STOP_AT_ENDS, default=DEFAULT_SEND_STOP_AT_ENDS): cv.boolean,
         vol.Optional(CONF_ALWAYS_CONFIDENT, default=DEFAULT_ALWAYS_CONFIDENT): cv.boolean,
+        vol.Optional(CONF_DEVICE_CLASS, default=DEFAULT_DEVICE_CLASS): DEVICE_CLASSES_SCHEMA,
     }
 )
 
@@ -119,7 +124,8 @@ def devices_from_config(domain_config):
         cover_entity_id = config.pop(CONF_COVER_ENTITY_ID, None)
         send_stop_at_ends = config.pop(CONF_SEND_STOP_AT_ENDS)
         always_confident = config.pop(CONF_ALWAYS_CONFIDENT)
-        device = CoverTimeBased(device_id, name, travel_time_down, travel_time_up, open_script_entity_id, close_script_entity_id, stop_script_entity_id, cover_entity_id, send_stop_at_ends, always_confident)
+        device_class = config.pop(CONF_DEVICE_CLASS)
+        device = CoverTimeBased(device_id, name, travel_time_down, travel_time_up, open_script_entity_id, close_script_entity_id, stop_script_entity_id, cover_entity_id, send_stop_at_ends, always_confident, device_class)
         devices.append(device)
     return devices
 
@@ -140,7 +146,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class CoverTimeBased(CoverEntity, RestoreEntity):
-    def __init__(self, device_id, name, travel_time_down, travel_time_up, open_script_entity_id, close_script_entity_id, stop_script_entity_id, cover_entity_id, send_stop_at_ends, always_confident):
+    def __init__(self, device_id, name, travel_time_down, travel_time_up, open_script_entity_id, close_script_entity_id, stop_script_entity_id, cover_entity_id, send_stop_at_ends, always_confident, device_class):
         """Initialize the cover."""
         from xknx.devices import TravelCalculator
         self._travel_time_down = travel_time_down
@@ -151,6 +157,7 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         self._cover_entity_id = cover_entity_id
         self._send_stop_at_ends = send_stop_at_ends
         self._always_confident = always_confident
+        self._device_class = device_class
         self._assume_uncertain_position = not self._always_confident
         self._target_position = 0
         self._processing_known_position = False
@@ -200,6 +207,11 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
     def unique_id(self):
         """Return the unique id."""
         return "cover_rf_timebased_uuid_" + self._unique_id
+
+    @property
+    def device_class(self):
+        """Return the device class of the cover."""
+        return self._device_class
 
     @property
     def extra_state_attributes(self):
