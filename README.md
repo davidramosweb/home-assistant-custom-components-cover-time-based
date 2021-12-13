@@ -273,7 +273,9 @@ In this instance we have caught a stop signal from the RF bridge and want to upd
 
 ### Icon customization
   
-For proper icon display (opened/moving/closed) customization can be added with option `device_class` set either in the cover's config, or in `configuration.yaml` based of what type of covers you have:
+For proper icon display (opened/moving/closed) customization can be added with option `device_class` set either in the cover's config, based of what type of covers you have. See [availale device classes for cover](http://dev-docs.home-assistant.io/en/master/api/components.html#homeassistant.components.cover.CoverDeviceClass).
+  
+Can also be done in `configuration.yaml`:
 
 ```yaml
 homeassistant:
@@ -284,8 +286,8 @@ homeassistant:
     cover.my_room_cover_time_based:
       device_class: curtain
 ```
+  
 More details in [Home Assistant device class docs](https://www.home-assistant.io/docs/configuration/customizing-devices/#device-class).
-See [availale device classes for cover](http://dev-docs.home-assistant.io/en/master/api/components.html#homeassistant.components.cover.CoverDeviceClass)
 
 ### Some tips 
 
