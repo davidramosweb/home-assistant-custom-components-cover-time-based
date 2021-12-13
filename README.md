@@ -34,6 +34,7 @@ cover:
     devices:
       my_room_cover_time_based:
         name: My Room Cover
+        device_class: curtain #optional
         travelling_time_up: 36
         travelling_time_down: 34
         close_script_entity_id: script.rf_myroom_cover_down
@@ -51,6 +52,7 @@ cover:
     devices:
       my_room_cover_time_based:
         name: My Room Cover
+        device_class: curtain #optional
         travelling_time_up: 36
         travelling_time_down: 34
         cover_entity_id: cover.myroom
@@ -270,18 +272,20 @@ Example:
 In this instance we have caught a stop signal from the RF bridge and want to update HA cover without triggering another stop action.
 
 ### Icon customization
-For proper icon display (opened/moving/closed) customization can be added to `configuration.yaml` based of what type of covers you have, either one by one, or for all covers at once:
+  
+For proper icon display (opened/moving/closed) customization can be added with option `device_class` set either in the cover's config, or in `configuration.yaml` based of what type of covers you have:
 
 ```yaml
 homeassistant:
   customize_domain: #for all covers 
      cover:
-      device_class: shutter
+      device_class: curtain
   customize: #for each cover separately
     cover.my_room_cover_time_based:
-      device_class: shutter
+      device_class: curtain
 ```
 More details in [Home Assistant device class docs](https://www.home-assistant.io/docs/configuration/customizing-devices/#device-class).
+See [availale device classes for cover](http://dev-docs.home-assistant.io/en/master/api/components.html#homeassistant.components.cover.CoverDeviceClass)
 
 ### Some tips 
 
