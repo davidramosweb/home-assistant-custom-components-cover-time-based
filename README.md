@@ -34,7 +34,6 @@ cover:
     devices:
       my_room_cover_time_based:
         name: My Room Cover
-        device_class: curtain #optional
         travelling_time_up: 36
         travelling_time_down: 34
         close_script_entity_id: script.rf_myroom_cover_down
@@ -42,6 +41,7 @@ cover:
         open_script_entity_id: script.rf_myroom_cover_up
         send_stop_at_ends: False #optional
         always_confident: False #optional
+        device_class: garage #optional
 ```
   
 **OR**:  
@@ -52,19 +52,19 @@ cover:
     devices:
       my_room_cover_time_based:
         name: My Room Cover
-        device_class: curtain #optional
         travelling_time_up: 36
         travelling_time_down: 34
         cover_entity_id: cover.myroom
         send_stop_at_ends: True #optional
         always_confident: True #optional
+        device_class: curtain #optional
 ```
 All mandatory settings self-explanatory. 
 
 Optional settings:
 - `send_stop_at_ends` defaults to `False`. If set to `True`, the Stop script will be run after the cover reaches to 0 or 100 (closes or opens completely). This is for people who use interlocked relays in the scripts to drive the covers, which need to be released when the covers reach the end positions.
 - `always_confident` defaults to `False`. If set to `True`, the calculated state will always be assumed to be accurate. This mainly affects UI components - for example, if the cover is fully opened, the open button will be disabled. Make sure to [set](#cover_rf_time_basedset_known_position) the current state after first setup and only use this entity to control the covers. Not recommended to be `True` for RF-based covers.
-
+- `device_class` defaults to `shutter` if not specified. See the docs for availale [cover device classes](http://dev-docs.home-assistant.io/en/master/api/components.html#homeassistant.components.cover.CoverDeviceClass).
 
 ### Example scripts.yaml entry
 #### RF covers
@@ -273,7 +273,7 @@ In this instance we have caught a stop signal from the RF bridge and want to upd
 
 ### Icon customization
   
-For proper icon display (opened/moving/closed) customization can be added with option `device_class` set either in the cover's config, based of what type of covers you have. See [availale device classes for cover](http://dev-docs.home-assistant.io/en/master/api/components.html#homeassistant.components.cover.CoverDeviceClass).
+For proper icon display (opened/moving/closed) customization can be added with option `device_class` set either in the cover's config, based of what type of covers you have. 
   
 Can also be done in `configuration.yaml`:
 
@@ -289,7 +289,6 @@ homeassistant:
   
 More details in [Home Assistant device class docs](https://www.home-assistant.io/docs/configuration/customizing-devices/#device-class).
   
-The default device class for entities implemented by this component is `shutter`.
 
 ### Some tips 
 
