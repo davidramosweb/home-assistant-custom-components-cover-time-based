@@ -6,15 +6,20 @@ import voluptuous as vol
 from datetime import timedelta
 
 from homeassistant.core import callback
+from homeassistant.helpers import entity_platform
 from homeassistant.helpers.event import async_track_utc_time_change, async_track_time_interval
 from homeassistant.components.cover import (
     ATTR_CURRENT_POSITION,
     ATTR_POSITION,
     PLATFORM_SCHEMA,
+    DEVICE_CLASSES_SCHEMA,
     CoverEntity,
 )
 from homeassistant.const import (
     CONF_NAME,
+    CONF_DEVICE_CLASS,
+    ATTR_ENTITY_ID,
+    ATTR_DEVICE_CLASS,
     SERVICE_CLOSE_COVER,
     SERVICE_OPEN_COVER,
     SERVICE_STOP_COVER,
@@ -26,7 +31,6 @@ from homeassistant.helpers.restore_state import RestoreEntity
 _LOGGER = logging.getLogger(__name__)
 
 CONF_DEVICES = 'devices'
-CONF_NAME = 'name'
 CONF_ALIASES = 'aliases'
 CONF_TRAVELLING_TIME_DOWN = 'travelling_time_down'
 CONF_TRAVELLING_TIME_UP = 'travelling_time_up'
@@ -35,14 +39,16 @@ DEFAULT_TRAVEL_TIME = 25
 CONF_OPEN_SWITCH_ENTITY_ID = 'open_switch_entity_id'
 CONF_CLOSE_SWITCH_ENTITY_ID = 'close_switch_entity_id'
 
+SERVICE_SET_KNOWN_POSITION = 'set_known_position'
+
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Optional(CONF_DEVICES, default={}): vol.Schema(
             {
                 cv.string: {
-                    vol.Optional(CONF_NAME): cv.string,
-                    vol.Optional(CONF_OPEN_SWITCH_ENTITY_ID): cv.string,
-                    vol.Optional(CONF_CLOSE_SWITCH_ENTITY_ID): cv.string,
+                    vol.Required(CONF_NAME): cv.string,
+                    vol.Required(CONF_OPEN_SWITCH_ENTITY_ID): cv.string,
+                    vol.Required(CONF_CLOSE_SWITCH_ENTITY_ID): cv.string,
                     vol.Optional(CONF_ALIASES, default=[]):
                         vol.All(cv.ensure_list, [cv.string]),
 
@@ -55,6 +61,15 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         ),
     }
 )
+
+POSITION_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_ids,
+        vol.Required(ATTR_POSITION): cv.positive_int,
+    }
+)
+
+DOMAIN = "cover_time_based"
 
 def devices_from_config(domain_config):
     """Parse configuration and add cover devices."""
@@ -73,8 +88,13 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     """Set up the cover platform."""
     async_add_entities(devices_from_config(config))
 
-class CoverTimeBased(CoverEntity, RestoreEntity):
-	
+    platform = entity_platform.current_platform.get()
+
+    platform.async_register_entity_service(
+        SERVICE_SET_KNOWN_POSITION, POSITION_SCHEMA, "set_known_position"
+    )
+
+class CoverTimeBased(CoverEntity, RestoreEntity):	
     def __init__(self, device_id, name, travel_time_down, travel_time_up, open_switch_entity_id, close_switch_entity_id):
         """Initialize the cover."""
         from xknx.devices import TravelCalculator
@@ -82,7 +102,8 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         self._travel_time_up = travel_time_up
         self._open_switch_entity_id = open_switch_entity_id
         self._close_switch_entity_id = close_switch_entity_id        
-        
+        self._unique_id = device_id
+
         if name:
             self._name = name
         else:
@@ -104,10 +125,10 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
             self.tc.set_position(int(
                 old_state.attributes.get(ATTR_CURRENT_POSITION)))
 
-    def _handle_my_button(self):
-        """Handle the MY button press"""
+    def _handle_stop(self):
+        """Handle stop"""
         if self.tc.is_traveling():
-            _LOGGER.debug('_handle_my_button :: button stops cover')
+            _LOGGER.debug('_handle_stop :: button stops cover')
             self.tc.stop()
             self.stop_auto_updater()
 
@@ -117,7 +138,17 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         return self._name
 
     @property
-    def device_state_attributes(self):
+    def unique_id(self):
+        """Return the unique id."""
+        return "cover_timebased_uuid_" + self._unique_id
+
+    @property
+    def device_class(self):
+        """Return the device class of the cover."""
+        return "shutter"
+
+    @property
+    def extra_state_attributes(self):
         """Return the device state attributes."""
         attr = {}
         if self._travel_time_down is not None:
@@ -165,23 +196,24 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
     async def async_close_cover(self, **kwargs):
         """Turn the device close."""
         _LOGGER.debug('async_close_cover')
-        self.tc.start_travel_down()
-
-        self.start_auto_updater()
-        await self._async_handle_command(SERVICE_CLOSE_COVER)
+        if self.tc.current_position() > 0:
+            self.tc.start_travel_down()
+            self.start_auto_updater()
+            await self._async_handle_command(SERVICE_CLOSE_COVER)
 
     async def async_open_cover(self, **kwargs):
         """Turn the device open."""
         _LOGGER.debug('async_open_cover')
-        self.tc.start_travel_up()
 
-        self.start_auto_updater()
-        await self._async_handle_command(SERVICE_OPEN_COVER)
+        if self.tc.current_position() < 100:
+            self.tc.start_travel_up()
+            self.start_auto_updater()
+            await self._async_handle_command(SERVICE_OPEN_COVER)
 
     async def async_stop_cover(self, **kwargs):
         """Turn the device stop."""
         _LOGGER.debug('async_stop_cover')
-        self._handle_my_button()
+        self._handle_stop()
         await self._async_handle_command(SERVICE_STOP_COVER)
 
     async def set_position(self, position):
@@ -236,9 +268,15 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         """Do auto stop if necessary."""
         if self.position_reached():
             _LOGGER.debug('auto_stop_if_necessary :: calling stop command')
-            await self._async_handle_command(SERVICE_STOP_COVER)
             self.tc.stop()
-    
+            await self._async_handle_command(SERVICE_STOP_COVER)
+            
+    async def set_known_position(self, **kwargs):
+        """We want to do a few things when we get a position"""
+        position = kwargs[ATTR_POSITION]
+        self._handle_stop()
+        await self._async_handle_command(SERVICE_STOP_COVER)
+        self.tc.set_position(position)    
     
     async def _async_handle_command(self, command, *args):
         if command == "close_cover":
