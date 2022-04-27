@@ -1,7 +1,7 @@
 {
   "name": "Cover Time Based (script/entity)",
   "content_in_root": false,
-  "render_readme": false,
+  "render_readme": true,
   "domains": ["cover"],
   "homeassistant": "2022.4"
 }
