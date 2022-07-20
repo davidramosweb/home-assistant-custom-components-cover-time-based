@@ -59,7 +59,7 @@ cover:
         send_stop_at_ends: True #optional
         always_confident: True #optional
         device_class: curtain #optional
-        availability_template: "{{ not (is_state('cover.myroom', 'unavailable') or is_state('cover.myroom', 'unknown')) }}"
+        availability_template: "{{ not (is_state('cover.myroom', 'unavailable') or is_state('cover.myroom', 'unknown')) }}" #optional
 ```
 All mandatory settings self-explanatory. 
 
