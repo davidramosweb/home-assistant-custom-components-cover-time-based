@@ -42,6 +42,7 @@ cover:
         send_stop_at_ends: False #optional
         always_confident: False #optional
         device_class: garage #optional
+        availability_template: "{{ is_state('binary_sensor.rfbridge_status', 'on') }}" #optional
 ```
   
 **OR**:  
@@ -65,6 +66,7 @@ Optional settings:
 - `send_stop_at_ends` defaults to `False`. If set to `True`, the Stop script will be run after the cover reaches to 0 or 100 (closes or opens completely). This is for people who use interlocked relays in the scripts to drive the covers, which need to be released when the covers reach the end positions.
 - `always_confident` defaults to `False`. If set to `True`, the calculated state will always be assumed to be accurate. This mainly affects UI components - for example, if the cover is fully opened, the open button will be disabled. Make sure to [set](#cover_rf_time_basedset_known_position) the current state after first setup and only use this entity to control the covers. Not recommended to be `True` for RF-based covers.
 - `device_class` defaults to `shutter` if not specified. See the docs for availale [cover device classes](http://dev-docs.home-assistant.io/en/master/api/components.html#homeassistant.components.cover.CoverDeviceClass).
+- `availability_template` if not specified will make the cover always available. You can use a template returning `True` or `False` in order to toggle availability of the cover based on other elements. Useful to link with the connection status of your RF Bridge or relays device.
 
 ### Example scripts.yaml entry
 #### RF covers

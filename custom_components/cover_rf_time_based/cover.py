@@ -23,6 +23,7 @@ from homeassistant.const import (
     SERVICE_CLOSE_COVER,
     SERVICE_OPEN_COVER,
     SERVICE_STOP_COVER,
+    STATE_UNAVAILABLE,
 )
 
 import homeassistant.helpers.config_validation as cv
@@ -45,6 +46,7 @@ CONF_OPEN_SCRIPT_ENTITY_ID = 'open_script_entity_id'
 CONF_CLOSE_SCRIPT_ENTITY_ID = 'close_script_entity_id'
 CONF_STOP_SCRIPT_ENTITY_ID = 'stop_script_entity_id'
 CONF_COVER_ENTITY_ID = 'cover_entity_id'
+CONF_AVAILABILITY_TPL = 'availability_template'
 ATTR_CONFIDENT = 'confident'
 ATTR_ACTION = 'action'
 ATTR_POSITION_TYPE = 'position_type'
@@ -63,6 +65,7 @@ BASE_DEVICE_SCHEMA = vol.Schema(
         vol.Optional(CONF_SEND_STOP_AT_ENDS, default=DEFAULT_SEND_STOP_AT_ENDS): cv.boolean,
         vol.Optional(CONF_ALWAYS_CONFIDENT, default=DEFAULT_ALWAYS_CONFIDENT): cv.boolean,
         vol.Optional(CONF_DEVICE_CLASS, default=DEFAULT_DEVICE_CLASS): DEVICE_CLASSES_SCHEMA,
+        vol.Optional(CONF_AVAILABILITY_TPL): cv.template,
     }
 )
 
@@ -125,7 +128,19 @@ def devices_from_config(domain_config):
         send_stop_at_ends = config.pop(CONF_SEND_STOP_AT_ENDS)
         always_confident = config.pop(CONF_ALWAYS_CONFIDENT)
         device_class = config.pop(CONF_DEVICE_CLASS)
-        device = CoverTimeBased(device_id, name, travel_time_down, travel_time_up, open_script_entity_id, close_script_entity_id, stop_script_entity_id, cover_entity_id, send_stop_at_ends, always_confident, device_class)
+        availability_template = config.pop(CONF_AVAILABILITY_TPL, None)
+        device = CoverTimeBased(device_id, 
+                                name, 
+                                travel_time_down, 
+                                travel_time_up, 
+                                open_script_entity_id, 
+                                close_script_entity_id, 
+                                stop_script_entity_id, 
+                                cover_entity_id, 
+                                send_stop_at_ends, 
+                                always_confident, 
+                                device_class, 
+                                availability_template)
         devices.append(device)
     return devices
 
@@ -146,7 +161,19 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class CoverTimeBased(CoverEntity, RestoreEntity):
-    def __init__(self, device_id, name, travel_time_down, travel_time_up, open_script_entity_id, close_script_entity_id, stop_script_entity_id, cover_entity_id, send_stop_at_ends, always_confident, device_class):
+    def __init__(self, 
+                 device_id, 
+                 name, 
+                 travel_time_down, 
+                 travel_time_up, 
+                 open_script_entity_id, 
+                 close_script_entity_id, 
+                 stop_script_entity_id, 
+                 cover_entity_id, 
+                 send_stop_at_ends, 
+                 always_confident, 
+                 device_class,
+                 availability_template):
         """Initialize the cover."""
         from xknx.devices import TravelCalculator
         self._travel_time_down = travel_time_down
@@ -162,6 +189,7 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
         self._target_position = 0
         self._processing_known_position = False
         self._unique_id = device_id
+        self._availability_template = availability_template
 
         if name:
             self._name = name
@@ -195,8 +223,17 @@ class CoverTimeBased(CoverEntity, RestoreEntity):
 
     @property
     def unconfirmed_state(self):
-        """Return the assume state as a string to persist through restarts ."""
+        """Return the assume state as a string to persist through restarts."""
         return str(self._assume_uncertain_position)
+
+    @property
+    def available(self):
+        """Return availability based on external template. Always available if no template specified."""
+        if self._availability_template is None:
+            return True
+        else:
+            self._availability_template.hass = self.hass
+            return self._availability_template.async_render()
 
     @property
     def name(self):
