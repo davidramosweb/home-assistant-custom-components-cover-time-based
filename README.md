@@ -42,7 +42,7 @@ cover:
         send_stop_at_ends: False #optional
         always_confident: False #optional
         device_class: garage #optional
-        availability_template: "{{ is_state('binary_sensor.rfbridge_status', 'on') }}" #optional
+        availability_template: "{{ is_state('binary_sensor.rf_bridge_status', 'on') }}" #optional
 ```
   
 **OR**:  
@@ -340,7 +340,7 @@ Use the following configuration for [ESPHome on Sonoff RF Bridge](https://esphom
 ```yaml
 substitutions:
   device_name: sonoff-rf-bridge
-  friendly_name: "Sonoff RF Bridge"
+  friendly_name: "RF Bridge"
   device_ip: 192.168.81.22
 
 esphome:
@@ -402,7 +402,7 @@ status_led:
 
 binary_sensor:
 - platform: status
-  name: ${friendly_name} State
+  name: ${friendly_name} Status
 
 switch:
 - platform: restart
