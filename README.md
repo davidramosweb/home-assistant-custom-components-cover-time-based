@@ -2,6 +2,8 @@
 
 Cover Time Based Component for your [Home-Assistant](http://www.home-assistant.io) based on [davidramosweb's Cover Time Based Component](https://github.com/davidramosweb/home-assistant-custom-components-cover-time-based), modified for native cover entities, covers triggered by RF commands, or any other unidirectional methods.
 
+**Note**: _Since ESPHome v1.15.0 (September 13, 2020) it is possible to implement a Time Based Cover entirely in the Sonoff RF Bridge hardware, which excludes the necessity of this component (at least of the RF part). Jump to the bottom of this readme for an example how to set it up._
+
 With this component you can add a time-based cover. You either have to set triggering scripts to open, close and stop the cover or you can use an existing cover entity provided by another integration which does not have timing or status feedback. Position is calculated based on the fraction of time spent by the cover travelling up or down. You can set position from within Home Assistant using service calls. When you use this component, you can forget about the cover's original remote controllers or switches, because there's no feedback from the cover about its real state, state is assumed based on the last command sent from Home Assistant. There's also a custom service available where you can update the real state of the cover based on external sensors if you want to.
 
 You can adapt it to your requirements, actually any cover system could be used which uses 3 triggers: up, stop, down. The idea is to embed your triggers into scripts which can be hooked into this component via config. For example, you can use RF-bridge or dual-gang switch running Tasmota or ESPHome firmware integrated like in the examples shown below.
@@ -334,7 +336,7 @@ This can be handled in multiple ways:
 ```
 
 #### Implementation with ESPHome
-  
+
 Use the following configuration for [ESPHome on Sonoff RF Bridge](https://esphome.io/components/rf_bridge.html):
   
 ```yaml
@@ -347,6 +349,7 @@ esphome:
   name: ${device_name}
   platform: ESP8266
   board: esp01_1m
+  esp8266_restore_from_flash: true
 
 wifi:
   ssid: !secret wifi_ssid
@@ -355,9 +358,11 @@ wifi:
     static_ip: ${device_ip}
     gateway: 192.168.81.254
     subnet: 255.255.255.0
+  use_address: ${device_ip}
 
 logger:
   baud_rate: 0
+  level: INFO
 
 uart:
   tx_pin: GPIO01
@@ -383,9 +388,11 @@ ota:
   password: !secret ota_password
 
 web_server:
+  version: 2
+  local: true
   port: 80
   auth:
-    username: admin
+    username: !secret web_server_adminuser
     password: !secret web_server_password
 
 sensor:
@@ -404,8 +411,29 @@ binary_sensor:
 - platform: status
   name: ${friendly_name} Status
 
-switch:
+button:
 - platform: restart
   name: ${friendly_name} Restart
   
+cover:
+- platform: time_based
+  name: 'My Room Cover'
+  device_class: shutter
+  assumed_state: true
+  has_built_in_endstop: true
+
+  close_action:
+    - rf_bridge.send_raw:
+        raw: 'AAB0XXXXX....XXXXXXXXXX'
+  close_duration: 34
+
+  stop_action:
+    - rf_bridge.send_raw:
+        raw: 'AAB0XXXXX....XXXXXXXXXX'
+
+  open_action:
+    - rf_bridge.send_raw:
+        raw: 'AAB0XXXXX....XXXXXXXXXX'
+  open_duration: 36s
+
 ```
