@@ -437,3 +437,5 @@ cover:
   open_duration: 36s
 
 ```
+
+For multiple covers to be operated simultaneously, a delay is needed between sending out the codes, this can also be done within ESPHome, see [detailed configuration example](https://github.com/nagyrobi/home-assistant-configuration-examples/blob/main/esphome/sonoff_rf_bridge_and_many_time_based_covers.yaml).
