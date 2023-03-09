@@ -1,3 +1,11 @@
+**NOTE**
+
+Since I moved the time-based functionality to an [ESPHome](https://esphome.io/components/cover/time_based.html) node, which works much better as it's being done in hardware, I'm archiving this repository and stop maintaining it. 
+
+
+Anyone feel free to fork it and continue development as needed.
+
+
 # Cover Time Based script/entity
 
 Cover Time Based Component for your [Home-Assistant](http://www.home-assistant.io) based on [davidramosweb's Cover Time Based Component](https://github.com/davidramosweb/home-assistant-custom-components-cover-time-based), modified for native cover entities, covers triggered by RF commands, or any other unidirectional methods.
